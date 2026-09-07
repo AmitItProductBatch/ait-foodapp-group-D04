@@ -12,7 +12,7 @@ pipeline {
         )
         string(
             name: 'SERVER_IP',
-            defaultValue: 'localhost',
+            defaultValue: '194.242.57.93',
             description: 'Public IP or domain of the deployment server'
         )
         string(
@@ -191,7 +191,7 @@ pipeline {
             echo "🎉 Pipeline Completed Successfully!"
             echo "👉 Frontend Application : http://${params.SERVER_IP}:4004"
             echo "👉 Backend REST API     : http://${params.SERVER_IP}:8084/api/users"
-            echo "👉 PostgreSQL Database  : Port 5004 (DB: fooddelivery)"
+            echo "👉 PostgreSQL Database  : Port 5004 (DB: fooddelivery04)"
             echo "🎉 ========================================================"
         }
         failure {

@@ -7,7 +7,7 @@ services:
     container_name: fooddelivery-postgres04
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-fooddelivery}
+      POSTGRES_DB: ${POSTGRES_DB:-fooddelivery04}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
@@ -15,7 +15,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-fooddelivery}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-fooddelivery04}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -33,13 +33,14 @@ services:
     container_name: fooddelivery-backend04
     restart: unless-stopped
     ports:
-      - "${BACKEND_PORT:-8084}:8080"
+      - "${BACKEND_PORT:-8084}:8084"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/${POSTGRES_DB:-fooddelivery}
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/${POSTGRES_DB:-fooddelivery04}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SERVER_PORT: 8080
+      SERVER_PORT: 8084
     depends_on:
       postgres-db:
         condition: service_healthy
@@ -54,7 +55,7 @@ services:
       context: ./food-delivery-frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8084/api/users}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://194.242.57.93:8084/api/users}
     container_name: fooddelivery-frontend04
     restart: unless-stopped
     ports:

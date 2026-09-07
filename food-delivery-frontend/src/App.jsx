@@ -329,15 +329,15 @@ export default function App() {
           <div className="info-chips">
             <div className="chip">
               <span className="chip-label">Frontend</span>
-              <span className="chip-val">Port 4003 (React + Vite)</span>
+              <span className="chip-val">Port 4004 (React + Vite)</span>
             </div>
             <div className="chip">
               <span className="chip-label">Backend</span>
-              <span className="chip-val">Port 8083 (Spring Boot 3)</span>
+              <span className="chip-val">Port 8084 (Spring Boot 3)</span>
             </div>
             <div className="chip">
               <span className="chip-label">Database</span>
-              <span className="chip-val">Port 5003 (PostgreSQL 16)</span>
+              <span className="chip-val">Port 5004 (PostgreSQL 16)</span>
             </div>
             <div className="chip">
               <span className="chip-label">Pipeline</span>
