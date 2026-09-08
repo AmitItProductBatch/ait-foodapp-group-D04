@@ -16,8 +16,7 @@ public class UserController {
 	UserService userService;
 	
 	@PostMapping("add/user")
-	public ResponseEntity postMethodName(@RequestBody User user) {
-		//TODO: process POST request
+	public ResponseEntity saveUser(@RequestBody User user) {
 		
 		return userService.addUser(user);
 	}

@@ -40,7 +40,7 @@ public class UserServiceImpl implements UserService{
 			errormsg.put("error", "Failed to save user: "+e.getMessage());
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errormsg);
 		}
-		
+		   
 		
 	}
 
