@@ -2,15 +2,18 @@ package com.ait.app.ServiceImpl;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.ait.app.ExceptionHandling.UserServicException;
 import com.ait.app.Service.UserService;
 import com.ait.app.model.User;
 import com.ait.app.repository.UserRepository;
+
 @Service
 public class UserServiceImpl implements UserService{
 
@@ -42,6 +45,17 @@ public class UserServiceImpl implements UserService{
 		}
 		   
 		
+	}
+	@Override
+	public void deleteUser(Integer id) {
+		// TODO Auto-generated method stub
+		Optional<User> user = userRepository.findById(id);
+
+	    if (user.isPresent()) {
+	        userRepository.delete(user.get());
+	    } else {
+	        throw new UserServicException("User not found with id: " + id);
+	    }
 	}
 
 }

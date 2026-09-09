@@ -7,4 +7,5 @@ import com.ait.app.model.User;
 public interface UserService {
 
 	ResponseEntity addUser(User user);
+	void deleteUser(Integer id);
 }
