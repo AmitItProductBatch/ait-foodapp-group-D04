@@ -6,4 +6,5 @@ import com.ait.app.model.User;
 
 public interface UserRepository extends JpaRepository<User, Integer>{
 
+	boolean existsByEmail(String email);
 }
