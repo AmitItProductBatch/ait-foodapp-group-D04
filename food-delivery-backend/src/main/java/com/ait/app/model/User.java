@@ -1,11 +1,17 @@
 package com.ait.app.model;
 
+import java.util.List;
+
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -23,11 +29,17 @@ public class User {
 	private String createdDt;
 	private String mobno;
 	
+	@OneToMany(mappedBy = "user",cascade = CascadeType.ALL)
+	@JsonIgnore
+	private List<Restaurant> restaurant;
 	
 	
-	
-	
-	
+	public List<Restaurant> getRestaurant() {
+		return restaurant;
+	}
+	public void setRestaurant(List<Restaurant> restaurant) {
+		this.restaurant = restaurant;
+	}
 	public int getId() {
 		return id;
 	}
