@@ -18,7 +18,7 @@ public class UserServiceImpl implements UserService{
 	UserRepository userRepository;
 	@Override
 	public ResponseEntity addUser(User user) {
-		// TODO Auto-generated method stub
+
 		if (user.getName()==null || user.getName().trim().isEmpty()||
 			user.getEmail()==null || user.getEmail().trim().isEmpty()||
 			user.getPass()==null || user.getPass().trim().isEmpty()||
@@ -35,7 +35,7 @@ public class UserServiceImpl implements UserService{
 			return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
 			
 		} catch (Exception e) {
-			// TODO: handle exception
+	
 			Map<String, String> errormsg=new HashMap<>();
 			errormsg.put("error", "Failed to save user: "+e.getMessage());
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errormsg);
