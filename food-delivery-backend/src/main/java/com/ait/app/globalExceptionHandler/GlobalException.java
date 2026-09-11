@@ -10,30 +10,41 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.ait.app.customExceptionHandler.AddressException;
 import com.ait.app.customExceptionHandler.UserException;
+import com.ait.app.customExceptionHandler.UserNotFoundException;
+
 @ControllerAdvice
 public class GlobalException {
-	
-		@ExceptionHandler(UserException.class)
-		public ResponseEntity handleUSerServiceException(UserException e) {
-				
-				Map error=new HashMap<>();
-				error.put("errorMsg", e.getMsg());
-				
-				return ResponseEntity.status(e.getStatusCode()).body(error);
-		}
-		
-		
-	   @ExceptionHandler(AddressException.class)
-	    public ResponseEntity<String> handleAddressException(AddressException a) {
 
-	        return new ResponseEntity( a.getMessage(),a.getHttpStatus());
-	        
-	    }
+	@ExceptionHandler(UserException.class)
+	public ResponseEntity handleUSerServiceException(UserException e) {
 
-	   @ExceptionHandler(Exception.class)
-	    public ResponseEntity handleException(Exception e) {
+		Map error = new HashMap<>();
+		error.put("errorMsg", e.getMsg());
 
-	        return new ResponseEntity<>("Something went wrong",HttpStatus.BAD_REQUEST);
-	        
-	   }
+		return ResponseEntity.status(e.getStatusCode()).body(error);
+	}
+
+	@ExceptionHandler(AddressException.class)
+	public ResponseEntity<String> handleAddressException(AddressException a) {
+
+		return new ResponseEntity(a.getMessage(), a.getHttpStatus());
+
+	}
+
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity handleException(Exception e) {
+
+		return new ResponseEntity<>("Something went wrong", HttpStatus.BAD_REQUEST);
+
+	}
+
+	@ExceptionHandler(UserNotFoundException.class)
+	public ResponseEntity handleUserNotFound(UserNotFoundException ex) {
+
+		Map response = new HashMap<>();
+		response.put("error", ex.getMessage());
+
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+	}
+
 }
