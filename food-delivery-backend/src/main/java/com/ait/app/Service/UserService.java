@@ -3,7 +3,7 @@ package com.ait.app.Service;
 import org.springframework.http.ResponseEntity;
 
 import com.ait.app.model.User;
-import com.ait.app.response.UserProfileResponse;
+import com.ait.app.requestBody.UserDto;
 
 public interface UserService {
 
@@ -11,5 +11,5 @@ public interface UserService {
 
 	ResponseEntity deleteUser(int id);
 
-	UserProfileResponse getUserById(int id);
+	UserDto getUserById(int id);
 }

@@ -15,7 +15,6 @@ import com.ait.app.customExceptionHandler.UserNotFoundException;
 import com.ait.app.model.User;
 import com.ait.app.repository.UserRepository;
 import com.ait.app.requestBody.UserDto;
-import com.ait.app.response.UserProfileResponse;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -70,12 +69,13 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 
-	public UserProfileResponse getUserById(int id) {
+	public UserDto getUserById(int id) {
 
 		User user = userRepository.findById(id)
 				.orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
 
-		return new UserProfileResponse(user.getId(), user.getEmail(), user.getMobno(), user.getName(), user.getRole());
+		return new UserDto(user.getId(), user.getName(), user.getEmail(), user.getRole(), user.getMobno(),
+				user.getCreatedDt());
 	}
 
 }

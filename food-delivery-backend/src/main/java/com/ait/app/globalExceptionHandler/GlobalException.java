@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.ait.app.customExceptionHandler.AddressException;
-import com.ait.app.customExceptionHandler.UnauthorizedUserException;
 import com.ait.app.customExceptionHandler.UserException;
 import com.ait.app.customExceptionHandler.UserNotFoundException;
 
@@ -40,20 +39,12 @@ public class GlobalException {
 	}
 
 	@ExceptionHandler(UserNotFoundException.class)
-	public ResponseEntity<Map<String, String>> handleUserNotFound(UserNotFoundException ex) {
+	public ResponseEntity handleUserNotFound(UserNotFoundException ex) {
 
-		Map<String, String> response = new HashMap<>();
+		Map response = new HashMap<>();
 		response.put("error", ex.getMessage());
 
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
 	}
 
-	@ExceptionHandler(UnauthorizedUserException.class)
-	public ResponseEntity<Map<String, String>> handleUnauthorizedUser(UnauthorizedUserException ex) {
-
-		Map<String, String> response = new HashMap<>();
-		response.put("error", ex.getMessage());
-
-		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-	}
 }

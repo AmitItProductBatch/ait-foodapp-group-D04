@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ait.app.Service.UserService;
 import com.ait.app.model.User;
-import com.ait.app.response.UserProfileResponse;
+import com.ait.app.requestBody.UserDto;
 
 @RestController
 @RequestMapping("/api/users")
@@ -35,9 +35,9 @@ public class UserController {
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<UserProfileResponse> getUserById(@PathVariable int id) {
+	public ResponseEntity<UserDto> getUserById(@PathVariable int id) {
 
-		UserProfileResponse response = userService.getUserById(id);
+		UserDto response = userService.getUserById(id);
 
 		return ResponseEntity.ok(response);
 	}
