@@ -1,14 +1,10 @@
 package com.ait.app.repository;
 
-import java.util.Optional;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.ait.app.model.User;
 
-public interface UserRepository extends JpaRepository<User, Integer> {
+public interface UserRepository extends JpaRepository<User, Integer>{
 
 	boolean existsByEmail(String email);
-
-	Optional<User> findById(int id);
 }
