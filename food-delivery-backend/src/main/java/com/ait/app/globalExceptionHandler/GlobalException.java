@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import com.ait.app.customExceptionHandler.AddressException;
 import com.ait.app.customExceptionHandler.RestaurantException;
 import com.ait.app.customExceptionHandler.UserException;
+import com.ait.app.customExceptionHandler.UserNotFoundException;
+
 @ControllerAdvice
 public class GlobalException {
 	
