@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class UserDto {
 
-	private int id;
+	
 	private String name;
 	private String email;
 	private String role;
@@ -17,9 +17,9 @@ public class UserDto {
 
 	}
 
-	public UserDto(int id, String name, String email, String role, String mobno, String createdDt) {
+	public UserDto( String name, String email, String role, String mobno, String createdDt) {
 		super();
-		this.id = id;
+		
 		this.name = name;
 		this.email = email;
 		this.role = role;
@@ -27,13 +27,7 @@ public class UserDto {
 		this.createdDt = createdDt;
 	}
 
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
+	
 
 	public String getName() {
 		return name;
