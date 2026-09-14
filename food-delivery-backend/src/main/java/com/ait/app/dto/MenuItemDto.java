@@ -1,61 +1,51 @@
-package com.ait.app.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
+package com.ait.app.dto;
 
 public class MenuItemDto {
 
-    @NotBlank(message = "Name is required")
-    private String name;
+	private String name;
+	private String description;
+	private double price;
+	private boolean availability;
+	private String category;
 
-    @NotBlank(message = "Description is required")
-    private String description;
+	public String getName() {
+		return name;
+	}
 
-    @Positive(message = "Price must be greater than 0")
-    private double price;
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    private boolean availability;
+	public String getDescription() {
+		return description;
+	}
 
-    @NotBlank(message = "Category is required")
-    private String category;
+	public void setDescription(String description) {
+		this.description = description;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public double getPrice() {
+		return price;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setPrice(double price) {
+		this.price = price;
+	}
 
-    public String getDescription() {
-        return description;
-    }
+	public boolean isAvailability() {
+		return availability;
+	}
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+	public void setAvailability(boolean availability) {
+		this.availability = availability;
+	}
 
-    public double getPrice() {
-        return price;
-    }
+	public String getCategory() {
+		return category;
+	}
 
-    public void setPrice(double price) {
-        this.price = price;
-    }
-
-    public boolean isAvailability() {
-        return availability;
-    }
-
-    public void setAvailability(boolean availability) {
-        this.availability = availability;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
+	public void setCategory(String category) {
         this.category = category;
     }
 }

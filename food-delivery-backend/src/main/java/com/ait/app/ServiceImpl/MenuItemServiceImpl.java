@@ -1,3 +1,4 @@
+
 package com.ait.app.ServiceImpl;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,65 +18,65 @@ import com.ait.app.repository.RestaurantRepo;
 @Service
 public class MenuItemServiceImpl implements MenuItemService {
 
-    @Autowired
-    private MenuItemRepository menuItemRepository;
+	@Autowired
+	private MenuItemRepository menuItemRepository;
 
-    @Autowired
-    private RestaurantRepo restaurantRepo;
+	@Autowired
+	private RestaurantRepo restaurantRepo;
 
-    @Override
-    public ResponseEntity addMenuItem(int restaurantId, MenuItemDto menuItemDto) {
+	@Override
+	public ResponseEntity addMenuItem(int restaurantId, MenuItemDto menuItemDto) {
 
-        // 1. Check whether restaurant exists
-        Restaurant restaurant = restaurantRepo.findById(restaurantId)
-                .orElseThrow(() ->
-                        new RestaurantException("Restaurant not found", HttpStatus.NOT_FOUND));
+		if (menuItemDto.getName() == null || menuItemDto.getName().isBlank()) {
 
-        // 2. Check whether restaurant has a linked user
-        User user = restaurant.getUser();
+			throw new RestaurantException("Name is required", HttpStatus.BAD_REQUEST);
+		}
 
-        if (user == null) {
-            throw new RestaurantException(
-                    "No user is linked with this restaurant",
-                    HttpStatus.UNAUTHORIZED);
-        }
+		if (menuItemDto.getDescription() == null || menuItemDto.getDescription().isBlank()) {
 
-        // 3. Check whether linked user is ADMIN
-        if (user.getRole() == null ||
-                !user.getRole().equalsIgnoreCase("ADMIN")) {
+			throw new RestaurantException("Description is required", HttpStatus.BAD_REQUEST);
+		}
 
-            throw new RestaurantException(
-                    "Only restaurant admin can add menu items",
-                    HttpStatus.FORBIDDEN);
-        }
+		if (menuItemDto.getPrice() <= 0) {
 
-        // 4. Check duplicate menu item name for same restaurant
-        if (menuItemRepository.existsByRestaurantIdAndName(
-                restaurantId, menuItemDto.getName())) {
+			throw new RestaurantException("Price must be greater than 0", HttpStatus.BAD_REQUEST);
+		}
 
-            throw new RestaurantException(
-                    "Menu item with this name already exists for this restaurant",
-                    HttpStatus.CONFLICT);
-        }
+		if (menuItemDto.getCategory() == null || menuItemDto.getCategory().isBlank()) {
 
-        // 5. Create MenuItem
-        MenuItem menuItem = new MenuItem();
+			throw new RestaurantException("Category is required", HttpStatus.BAD_REQUEST);
+		}
 
-        menuItem.setName(menuItemDto.getName());
-        menuItem.setDescription(menuItemDto.getDescription());
-        menuItem.setPrice(menuItemDto.getPrice());
-        menuItem.setAvailability(menuItemDto.isAvailability());
-        menuItem.setCategory(menuItemDto.getCategory());
+		Restaurant restaurant = restaurantRepo.findById(restaurantId)
+				.orElseThrow(() -> new RestaurantException("Restaurant not found", HttpStatus.NOT_FOUND));
 
-        // 6. Connect MenuItem with Restaurant
-        menuItem.setRestaurant(restaurant);
+		User user = restaurant.getUser();
 
-        // 7. Save MenuItem
-        MenuItem savedItem = menuItemRepository.save(menuItem);
+		if (user == null) {
+			throw new RestaurantException("No user is linked with this restaurant", HttpStatus.UNAUTHORIZED);
+		}
 
-        // 8. Return 201 Created
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(savedItem);
-    }
+		if (!"ADMIN".equalsIgnoreCase(user.getRole())) {
+			throw new RestaurantException("Only restaurant admin can add menu items", HttpStatus.FORBIDDEN);
+		}
+
+		if (menuItemRepository.existsByRestaurantIdAndName(restaurantId, menuItemDto.getName())) {
+
+			throw new RestaurantException("Menu item with this name already exists for this restaurant",
+					HttpStatus.CONFLICT);
+		}
+
+		MenuItem menuItem = new MenuItem();
+
+		menuItem.setName(menuItemDto.getName());
+		menuItem.setDescription(menuItemDto.getDescription());
+		menuItem.setPrice(menuItemDto.getPrice());
+		menuItem.setAvailability(menuItemDto.isAvailability());
+		menuItem.setCategory(menuItemDto.getCategory());
+		menuItem.setRestaurant(restaurant);
+
+		MenuItem savedItem = menuItemRepository.save(menuItem);
+
+		return ResponseEntity.status(HttpStatus.CREATED).body(savedItem);
+	}
 }
