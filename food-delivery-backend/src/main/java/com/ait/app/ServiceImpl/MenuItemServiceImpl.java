@@ -25,7 +25,7 @@ public class MenuItemServiceImpl implements MenuItemService {
 	private RestaurantRepo restaurantRepo;
 
 	@Override
-	public ResponseEntity addMenuItem(int restaurantId, MenuItemDto menuItemDto) {
+	public ResponseEntity<MenuItem> addMenuItem(int restaurantId, MenuItemDto menuItemDto) {
 
 		if (menuItemDto.getName() == null || menuItemDto.getName().isBlank()) {
 
