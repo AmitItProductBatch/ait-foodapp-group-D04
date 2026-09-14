@@ -12,6 +12,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -33,7 +34,19 @@ public class User {
 	@JsonIgnore
 	private List<Restaurant> restaurant;
 	
+	@OneToOne(mappedBy = "user")
+	private Cart cart;
 	
+	@OneToMany(mappedBy = "user")
+	List<Address>addressList;
+	
+	
+	public Cart getCart() {
+		return cart;
+	}
+	public void setCart(Cart cart) {
+		this.cart = cart;
+	}
 	public List<Restaurant> getRestaurant() {
 		return restaurant;
 	}

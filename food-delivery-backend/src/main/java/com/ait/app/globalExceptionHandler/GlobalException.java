@@ -9,42 +9,48 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.ait.app.customExceptionHandler.AddressException;
+import com.ait.app.customExceptionHandler.CartException;
 import com.ait.app.customExceptionHandler.RestaurantException;
 import com.ait.app.customExceptionHandler.UserException;
 
 @ControllerAdvice
 public class GlobalException {
-	
-		@ExceptionHandler(UserException.class)
-		public ResponseEntity handleUSerServiceException(UserException e) {
-				
-				Map error=new HashMap<>();
-				error.put("errorMsg", e.getMsg());
-				
-				return ResponseEntity.status(e.getStatusCode()).body(error);
-		}
-		
-		
-	   @ExceptionHandler(AddressException.class)
-	    public ResponseEntity<String> handleAddressException(AddressException a) {
 
-	        return new ResponseEntity( a.getMessage(),a.getHttpStatus());
-	        
-	    }
+	@ExceptionHandler(UserException.class)
+	public ResponseEntity handleUSerServiceException(UserException e) {
 
-	   @ExceptionHandler(Exception.class)
-	    public ResponseEntity handleException(Exception e) {
+		Map error = new HashMap<>();
+		error.put("errorMsg", e.getMsg());
 
-	        return new ResponseEntity<>("Something went wrong",HttpStatus.BAD_REQUEST);
-	        
-	   }
-	   
-	   @ExceptionHandler(RestaurantException.class)
-		public ResponseEntity handleRestaurantServiceException(RestaurantException e) {
-			
-			Map error = new HashMap<>();
-			error.put("error", e.getMsg());
-			
-			return ResponseEntity.status(e.getStatusCode()).body(error);
-		}
+		return ResponseEntity.status(e.getStatusCode()).body(error);
+	}
+
+	@ExceptionHandler(AddressException.class)
+	public ResponseEntity<String> handleAddressException(AddressException a) {
+
+		return new ResponseEntity(a.getMessage(), a.getHttpStatus());
+
+	}
+
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity handleException(Exception e) {
+
+		return new ResponseEntity<>("Something went wrong", HttpStatus.BAD_REQUEST);
+
+	}
+
+	@ExceptionHandler(RestaurantException.class)
+	public ResponseEntity handleRestaurantServiceException(RestaurantException e) {
+
+		Map error = new HashMap<>();
+		error.put("error", e.getMsg());
+
+		return ResponseEntity.status(e.getStatusCode()).body(error);
+	}
+
+	@ExceptionHandler
+	public ResponseEntity handleCartException(CartException e) {
+
+		return new ResponseEntity(e.getMessage(), e.getHttpStatus());
+	}
 }
