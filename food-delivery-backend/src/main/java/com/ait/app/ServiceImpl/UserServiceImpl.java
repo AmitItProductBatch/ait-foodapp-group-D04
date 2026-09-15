@@ -9,8 +9,10 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.ait.app.Service.CartService;
 import com.ait.app.Service.UserService;
 import com.ait.app.customExceptionHandler.UserException;
+import com.ait.app.model.Cart;
 import com.ait.app.model.User;
 import com.ait.app.repository.UserRepository;
 import com.ait.app.requestBody.UserDto;
@@ -20,6 +22,9 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	UserRepository userRepository;
+
+	@Autowired
+	CartServiceImpl cartServiceImpl;
 
 	@Override
 	public ResponseEntity addUser(User user) {
@@ -35,8 +40,13 @@ public class UserServiceImpl implements UserService {
 		if (userRepository.existsByEmail(user.getEmail())) {
 			throw new UserException("User Already Exists.....", HttpStatus.CONFLICT);
 		}
+
 		try {
 			User savedUser = userRepository.save(user);
+
+			Cart savedCart = cartServiceImpl.createCart(savedUser.getId());
+			System.out.println(savedCart.getCartid());
+
 			UserDto dto = new UserDto();
 
 			dto.setName(savedUser.getName());
@@ -68,33 +78,30 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 
-public UserDto getUserById(int id) {
-		
+	public UserDto getUserById(int id) {
+
 		try {
 
-	        User user = userRepository.findById(id).get();
+			User user = userRepository.findById(id).get();
 
-	        if (userRepository.existsById(id)) {
+			if (userRepository.existsById(id)) {
 
-	      
+				UserDto userDto = new UserDto();
 
-	            UserDto userDto = new UserDto();
-	          
-	            userDto.setCreatedDt(user.getCreatedDt());
-	            userDto.setEmail(user.getEmail());
-	            userDto.setMobno(user.getMobno());
-	            userDto.setName(user.getName());
-	            userDto.setRole(user.getRole());
+				userDto.setCreatedDt(user.getCreatedDt());
+				userDto.setEmail(user.getEmail());
+				userDto.setMobno(user.getMobno());
+				userDto.setName(user.getName());
+				userDto.setRole(user.getRole());
 
-	            return userDto;
-	        }
+				return userDto;
+			}
 
+			throw new UserException("User not found", HttpStatus.NOT_FOUND);
 
-	        throw new UserException("User not found", HttpStatus.NOT_FOUND);
+		} catch (Exception e) {
+			throw new UserException("User not found of id " + id, HttpStatus.NOT_FOUND);
 
-	    } catch (Exception e) {
-	        throw new UserException("User not found of id "+id, HttpStatus.NOT_FOUND);
-
-	    }
-}
+		}
+	}
 }
