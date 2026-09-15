@@ -10,73 +10,73 @@ import jakarta.persistence.ManyToOne;
 @Entity
 public class MenuItem {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int id;
 
-    private String name;
+	private String name;
 
-    private String description;
+	private String description;
 
-    private double price;
+	private double price;
 
-    private boolean availability;
+	private boolean availability;
 
-    private String category;
+	private String category;
 
-    @ManyToOne
-    @JoinColumn(name = "restaurant_id")
-    private Restaurant restaurant;
+	@ManyToOne
+	@JoinColumn(name = "restaurant_id")
+	private Restaurant restaurant;
 
-    public int getId() {
-        return id;
-    }
+	public int getId() {
+		return id;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public String getDescription() {
-        return description;
-    }
+	public String getDescription() {
+		return description;
+	}
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+	public void setDescription(String description) {
+		this.description = description;
+	}
 
-    public double getPrice() {
-        return price;
-    }
+	public double getPrice() {
+		return price;
+	}
 
-    public void setPrice(double price) {
-        this.price = price;
-    }
+	public void setPrice(double price) {
+		this.price = price;
+	}
 
-    public boolean isAvailability() {
-        return availability;
-    }
+	public boolean isAvailability() {
+		return availability;
+	}
 
-    public void setAvailability(boolean availability) {
-        this.availability = availability;
-    }
+	public void setAvailability(boolean availability) {
+		this.availability = availability;
+	}
 
-    public String getCategory() {
-        return category;
-    }
+	public String getCategory() {
+		return category;
+	}
 
-    public void setCategory(String category) {
-        this.category = category;
-    }
+	public void setCategory(String category) {
+		this.category = category;
+	}
 
-    public Restaurant getRestaurant() {
-        return restaurant;
-    }
+	public Restaurant getRestaurant() {
+		return restaurant;
+	}
 
-    public void setRestaurant(Restaurant restaurant) {
-        this.restaurant = restaurant;
-    }
+	public void setRestaurant(Restaurant restaurant) {
+		this.restaurant = restaurant;
+	}
 }

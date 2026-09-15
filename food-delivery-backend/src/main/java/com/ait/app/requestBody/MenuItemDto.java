@@ -1,6 +1,4 @@
-
-package com.ait.app.dto;
-
+package com.ait.app.requestBody;
 public class MenuItemDto {
 
 	private String name;
@@ -46,6 +44,6 @@ public class MenuItemDto {
 	}
 
 	public void setCategory(String category) {
-        this.category = category;
-    }
+		this.category = category;
+	}
 }
