@@ -1,5 +1,8 @@
 package com.ait.app.requestBody;
 
+import java.util.List;
+
+import org.hibernate.annotations.CreationTimestamp;
 import lombok.Data;
 
 @Data
@@ -10,21 +13,27 @@ public class UserDto {
 	private String email;
 	private String role;
 	private String mobno;
+	private List<AddressDto> addresses;
+	@CreationTimestamp
 	private String createdDt;
+	
+
 
 	public UserDto() {
 		super();
 
 	}
 
-	public UserDto( String name, String email, String role, String mobno, String createdDt) {
+	public UserDto( String name, String email, String role, String mobno,List<AddressDto> addresses, String createdDt) {
 		super();
 		
 		this.name = name;
 		this.email = email;
 		this.role = role;
 		this.mobno = mobno;
+		this.addresses = addresses;
 		this.createdDt = createdDt;
+		
 	}
 
 	
@@ -61,6 +70,16 @@ public class UserDto {
 		this.mobno = mobno;
 	}
 
+	
+	
+	public List<AddressDto> getAddresses() {
+		return addresses;
+	}
+
+	public void setAddresses(List<AddressDto> addresses) {
+		this.addresses = addresses;
+	}
+
 	public String getCreatedDt() {
 		return createdDt;
 	}
@@ -68,5 +87,8 @@ public class UserDto {
 	public void setCreatedDt(String createdDt) {
 		this.createdDt = createdDt;
 	}
+
+	
+	
 
 }

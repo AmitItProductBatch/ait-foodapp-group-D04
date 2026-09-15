@@ -1,7 +1,14 @@
 package com.ait.app.requestBody;
 
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
 public class AddressDto {
-	
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int id;
 	private String addressLabel;
 	private String streetAddress;
 	private String apartmentSuiteFloor;
@@ -51,6 +58,14 @@ public class AddressDto {
 	public void setDeliveryInstructions(String deliveryInstructions) {
 		this.deliveryInstructions = deliveryInstructions;
 	}
+	public int getId() {
+		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	
 	
 
 }
