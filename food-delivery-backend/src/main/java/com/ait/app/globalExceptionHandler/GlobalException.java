@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import com.ait.app.customExceptionHandler.AddressException;
+import com.ait.app.customExceptionHandler.CartException;
 import com.ait.app.customExceptionHandler.RestaurantException;
 import com.ait.app.customExceptionHandler.UserException;
-import com.ait.app.customExceptionHandler.UserNotFoundException;
 
 @ControllerAdvice
 public class GlobalException {
@@ -34,20 +34,7 @@ public class GlobalException {
 	        
 	    }
 
-	   @ExceptionHandler(MethodArgumentNotValidException.class)
-	    public ResponseEntity<Map<String, String>> handleValidationException(
-	            MethodArgumentNotValidException e) {
-
-	        Map<String, String> errors = new HashMap<>();
-
-	        e.getBindingResult().getFieldErrors()
-	                .forEach(error -> errors.put(
-	                        error.getField(),
-	                        error.getDefaultMessage()
-	                ));
-
-	        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
-	    }
+	 
 
 	   @ExceptionHandler(Exception.class)
 	    public ResponseEntity handleException(Exception e) {

@@ -1,6 +1,7 @@
 package com.ait.app.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,23 +23,21 @@ public class UserController {
 	@Autowired
 	UserService userService;
 
-	@PostMapping("add/user")
+	@PostMapping("/add")
 	public ResponseEntity saveUser(@RequestBody User user) {
 
 		return userService.addUser(user);
 	}
 
-	@DeleteMapping("user/delete/{id}")
+	@DeleteMapping("/{id}")
 	public ResponseEntity deleteUser(@PathVariable int id) {
 
 		return userService.deleteUser(id);
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<UserDto> getUserById(@PathVariable int id) {
+	public UserDto getUserById(@PathVariable int id) {
 
-		UserDto response = userService.getUserById(id);
-
-		return ResponseEntity.ok(response);
+		return userService.getUserById(id);
 	}
 }
