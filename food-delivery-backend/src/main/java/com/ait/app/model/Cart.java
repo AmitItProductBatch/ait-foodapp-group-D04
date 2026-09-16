@@ -18,7 +18,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import lombok.Data;
 
-@Data
 @Entity
 public class Cart {
 
@@ -38,5 +37,45 @@ public class Cart {
 	@OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
 	@JsonIgnore
 	List<CartItems> cartItems;
+
+	public int getCartid() {
+		return Cartid;
+	}
+
+	public void setCartid(int cartid) {
+		Cartid = cartid;
+	}
+
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public LocalDateTime getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(LocalDateTime updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+
+	public List<CartItems> getCartItems() {
+		return cartItems;
+	}
+
+	public void setCartItems(List<CartItems> cartItems) {
+		this.cartItems = cartItems;
+	}
 
 }
