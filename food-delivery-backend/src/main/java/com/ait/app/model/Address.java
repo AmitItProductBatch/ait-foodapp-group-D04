@@ -27,7 +27,7 @@ public class Address {
 	private String deliveryInstructions;
 
 	@ManyToOne()
-	@JoinColumn(name = "user_id", referencedColumnName = "id")
+	@JoinColumn(name = "user_id")
 	@JsonIgnore
 	private User user;
 

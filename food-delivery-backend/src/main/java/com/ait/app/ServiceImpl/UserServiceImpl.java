@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.ait.app.Service.CartService;
 import com.ait.app.Service.UserService;
 import com.ait.app.customExceptionHandler.UserException;
 import com.ait.app.model.Address;
@@ -43,6 +44,7 @@ public class UserServiceImpl implements UserService {
 		if (userRepository.existsByEmail(user.getEmail())) {
 			throw new UserException("User Already Exists.....", HttpStatus.CONFLICT);
 		}
+
 		try {
 
 			if (user.getAddresses() != null) {
@@ -52,6 +54,10 @@ public class UserServiceImpl implements UserService {
 			}
 
 			User savedUser = userRepository.save(user);
+
+			Cart savedCart = cartServiceImpl.createCart(savedUser.getId());
+			System.out.println(savedCart.getCartid());
+
 			UserDto dto = new UserDto();
 
 			dto.setName(savedUser.getName());

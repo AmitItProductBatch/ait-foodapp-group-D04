@@ -7,8 +7,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import com.ait.app.customExceptionHandler.AddressException;
+import com.ait.app.customExceptionHandler.CartException;
 import com.ait.app.customExceptionHandler.RestaurantException;
 import com.ait.app.customExceptionHandler.UserException;
 
@@ -31,6 +33,8 @@ public class GlobalException {
 	        return new ResponseEntity( a.getMessage(),a.getHttpStatus());
 	        
 	    }
+
+	 
 
 	   @ExceptionHandler(Exception.class)
 	    public ResponseEntity handleException(Exception e) {
