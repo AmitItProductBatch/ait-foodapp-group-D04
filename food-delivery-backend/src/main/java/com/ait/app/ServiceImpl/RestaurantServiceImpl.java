@@ -1,6 +1,7 @@
 package com.ait.app.ServiceImpl;
 
 import java.util.ArrayList;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,8 @@ import com.ait.app.repository.UserRepository;
 import com.ait.app.requestBody.RestaurantDto;
 
 import com.ait.app.response.RestaurantDetailsResponse;
+
+import java.util.Optional;
 
 
 @Service
@@ -78,63 +81,53 @@ public class RestaurantServiceImpl implements RestaurantService {
 		}
 	
 	
+
 	@Override
 	public ResponseEntity getRestaurantById(int id) {
 
-		try {
+	    Optional<Restaurant> restaurantOptional = restaurantrepo.findById(id);
 
-			Restaurant restaurant = restaurantrepo.findById(id)
-					.orElseThrow(() ->
-							new RestaurantException(
-									"Restaurant not found with ID: " + id,
-									HttpStatus.NOT_FOUND
-							));
+	    if (!restaurantOptional.isPresent()) {
 
-			RestaurantDetailsResponse responseData =
-					new RestaurantDetailsResponse();
+	        throw new RestaurantException(
+	                "Restaurant not found with ID: " + id,
+	                HttpStatus.NOT_FOUND
+	        );
+	    }
 
-			responseData.setName(restaurant.getName());
-			responseData.setAddress(restaurant.getAddress());
-			responseData.setContactNo(restaurant.getContactNo());
+	    Restaurant restaurant = restaurantOptional.get();
 
-			List<String> cuisineNames = new ArrayList<>();
+	    RestaurantDetailsResponse responseData =
+	            new RestaurantDetailsResponse();
 
-			if (restaurant.getCuisine() != null) {
+	    responseData.setName(restaurant.getName());
+	    responseData.setAddress(restaurant.getAddress());
+	    responseData.setContactNo(restaurant.getContactNo());
 
-				for (Cuisine cuisine : restaurant.getCuisine()) {
+	    List<String> cuisineNames = new ArrayList<String>();
 
-					if (cuisine != null && cuisine.getName() != null) {
-						cuisineNames.add(cuisine.getName());
-					}
-				}
-			}
+	    if (restaurant.getCuisine() != null) {
 
-			responseData.setCuisine(cuisineNames);
-			
-			responseData.setRating(4.0);
-			responseData.setOperatingHours("10:00 AM - 11:00 PM");
-			
-			
-			
-			
+	        for (Cuisine cuisine : restaurant.getCuisine()) {
 
-			Map data = new HashMap<>();
-			data.put("message", "Restaurant Details Fetched Successfully");
-			data.put("restaurant", responseData);
+	            if (cuisine != null && cuisine.getName() != null) {
+	                cuisineNames.add(cuisine.getName());
+	            }
+	        }
+	    }
 
-			return ResponseEntity.status(HttpStatus.OK).body(data);
+	    responseData.setCuisine(cuisineNames);
 
-		} catch (RestaurantException e) {
+	    responseData.setRating(4.0);
+	    responseData.setOperatingHours("10:00 AM - 11:00 PM");
 
-			throw e;
+	    Map data = new HashMap();
+	    data.put("message", "Restaurant Details Fetched Successfully");
+	    data.put("restaurant", responseData);
 
-		} catch (Exception e) {
-
-			throw new RestaurantException(
-					"Failed to fetch restaurant details: " + e.getMessage(),
-					HttpStatus.INTERNAL_SERVER_ERROR
-			);
-		}
+	    return ResponseEntity.status(HttpStatus.OK).body(data);
 	}
-
+	
+	
+	
 }
