@@ -13,6 +13,7 @@ import com.ait.app.Service.CartService;
 import com.ait.app.Service.UserService;
 import com.ait.app.customExceptionHandler.UserException;
 import com.ait.app.model.Address;
+import com.ait.app.model.Cart;
 import com.ait.app.model.User;
 import com.ait.app.repository.AddressRepository;
 import com.ait.app.repository.UserRepository;
@@ -29,6 +30,9 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	AddressRepository addressRepository;
+	
+	@Autowired
+	CartServiceImpl cartServiceImpl;
 
 	@Override
 	public ResponseEntity addUser(User user) {

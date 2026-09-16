@@ -51,4 +51,10 @@ public class GlobalException {
 			
 			return ResponseEntity.status(e.getStatusCode()).body(error);
 		}
+	   
+	   @ExceptionHandler(CartException.class)
+		public ResponseEntity handleCartException(CartException e) {
+
+			return new ResponseEntity(e.getMessage(), e.getHttpStatus());
+		}
 }

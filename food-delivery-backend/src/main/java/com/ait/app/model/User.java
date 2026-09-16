@@ -38,8 +38,10 @@ public class User {
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
 	private List<Address> addresses;
 	
-	@OneToMany(mappedBy = "user")
-	List<Address>addressList;
+	@OneToOne(mappedBy = "user")
+	private Cart cart;
+	
+	
 	
 	
 	public Cart getCart() {
