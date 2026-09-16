@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.ait.app.requestBody.AddressDto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
@@ -34,8 +35,8 @@ public class User {
 	@JsonIgnore
 	private List<Restaurant> restaurant;
 	
-	@OneToOne(mappedBy = "user")
-	private Cart cart;
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+	private List<Address> addresses;
 	
 	@OneToMany(mappedBy = "user")
 	List<Address>addressList;
@@ -95,6 +96,13 @@ public class User {
 	public void setMobno(String mobno) {
 		this.mobno = mobno;
 	}
+	public List<Address> getAddresses() {
+		return addresses;
+	}
+	public void setAddresses(List<Address> addresses) {
+		this.addresses = addresses;
+	}
+	
 	
 	
 
