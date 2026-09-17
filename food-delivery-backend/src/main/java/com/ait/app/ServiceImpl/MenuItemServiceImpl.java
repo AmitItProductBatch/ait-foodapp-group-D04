@@ -58,9 +58,9 @@ public class MenuItemServiceImpl implements MenuItemService {
 			throw new RestaurantException("No user is linked with this restaurant", HttpStatus.UNAUTHORIZED);
 		}
 
-		if (!"ADMIN".equalsIgnoreCase(user.getRole())) {
-			throw new RestaurantException("Only restaurant admin can add menu items", HttpStatus.FORBIDDEN);
-		}
+		// if (!"ADMIN".equalsIgnoreCase(user.getRole())) {
+		// 	throw new RestaurantException("Only restaurant admin can add menu items", HttpStatus.FORBIDDEN);
+		// }
 
 		if (menuItemRepository.existsByRestaurantIdAndName(restaurantId, menuItemDto.getName())) {
 
