@@ -1,4 +1,11 @@
 package com.ait.app.ServiceImpl;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.ait.app.response.MenuItemResponse;
+import com.ait.app.response.MenuResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -80,5 +87,45 @@ public class MenuItemServiceImpl implements MenuItemService {
         MenuItem savedItem = menuItemRepository.save(menuItem);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(savedItem);
+    }
+    @Override
+    public List<MenuResponse> getRestaurantMenu(int restaurantId) {
+
+        restaurantRepo.findById(restaurantId)
+                .orElseThrow(() -> new RestaurantException(
+                        "Restaurant not found", HttpStatus.NOT_FOUND));
+
+        List<MenuItem> menuItems =
+                menuItemRepository.findByRestaurantIdAndAvailabilityTrue(restaurantId);
+
+        Map<String, List<MenuItemResponse>> groupedMenu = new LinkedHashMap<>();
+
+        for (MenuItem menuItem : menuItems) {
+
+            MenuItemResponse itemResponse = new MenuItemResponse();
+
+            itemResponse.setName(menuItem.getName());
+            itemResponse.setDescription(menuItem.getDescription());
+            itemResponse.setPrice(menuItem.getPrice());
+
+            groupedMenu
+                    .computeIfAbsent(menuItem.getCategory(),
+                            key -> new ArrayList<>())
+                    .add(itemResponse);
+        }
+
+        List<MenuResponse> menuResponse = new ArrayList<>();
+
+        for (Map.Entry<String, List<MenuItemResponse>> entry : groupedMenu.entrySet()) {
+
+            MenuResponse response = new MenuResponse();
+
+            response.setCategory(entry.getKey());
+            response.setItems(entry.getValue());
+
+            menuResponse.add(response);
+        }
+
+        return menuResponse;
     }
 }
