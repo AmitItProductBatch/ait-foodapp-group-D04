@@ -124,3 +124,28 @@ public class MenuItemServiceImpl implements MenuItemService {
 		
 	}
 }
+	public ResponseEntity deleteMenuItem(int itemId, int userId) {
+		
+		  Optional<MenuItem> optional = menuItemRepository.findById(itemId);
+
+		    if (optional.isEmpty()) {
+		        throw new RestaurantException("Menu item not found", HttpStatus.NOT_FOUND);
+		    }
+
+		    MenuItem item = optional.get();
+
+		    Restaurant restaurant = item.getRestaurant();
+
+		    if (restaurant.getUser().getId() != userId) {
+		        throw new RestaurantException("You are not authorized to delete this item", HttpStatus.UNAUTHORIZED);
+		    }
+
+		    item.setActive(false);
+		    menuItemRepository.save(item);
+
+		    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		}
+	
+		
+	}
+

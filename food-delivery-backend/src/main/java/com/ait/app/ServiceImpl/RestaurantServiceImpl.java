@@ -1,6 +1,7 @@
 package com.ait.app.ServiceImpl;
 
 import java.util.ArrayList;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,11 @@ import com.ait.app.repository.RestaurantRepo;
 import com.ait.app.repository.UserRepository;
 import com.ait.app.requestBody.RestaurantDto;
 
+import com.ait.app.response.RestaurantDetailsResponse;
+
+import java.util.Optional;
+
+
 @Service
 public class RestaurantServiceImpl implements RestaurantService {
 
@@ -26,7 +32,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 	RestaurantRepo restaurantrepo;
 	
 	@Autowired
-	UserRepository userrepo;;
+	UserRepository userrepo;
 
 	@Override
 	public ResponseEntity addRestaurant(RestaurantDto restaurantdto) {
@@ -73,5 +79,55 @@ public class RestaurantServiceImpl implements RestaurantService {
 		        throw new RestaurantException("Failed to save Restaurant",HttpStatus.INTERNAL_SERVER_ERROR);
 		    }
 		}
+	
+	
 
+	@Override
+	public ResponseEntity getRestaurantById(int id) {
+
+	    Optional<Restaurant> restaurantOptional = restaurantrepo.findById(id);
+
+	    if (!restaurantOptional.isPresent()) {
+
+	        throw new RestaurantException(
+	                "Restaurant not found with ID: " + id,
+	                HttpStatus.NOT_FOUND
+	        );
+	    }
+
+	    Restaurant restaurant = restaurantOptional.get();
+
+	    RestaurantDetailsResponse responseData =
+	            new RestaurantDetailsResponse();
+
+	    responseData.setName(restaurant.getName());
+	    responseData.setAddress(restaurant.getAddress());
+	    responseData.setContactNo(restaurant.getContactNo());
+
+	    List<String> cuisineNames = new ArrayList<String>();
+
+	    if (restaurant.getCuisine() != null) {
+
+	        for (Cuisine cuisine : restaurant.getCuisine()) {
+
+	            if (cuisine != null && cuisine.getName() != null) {
+	                cuisineNames.add(cuisine.getName());
+	            }
+	        }
+	    }
+
+	    responseData.setCuisine(cuisineNames);
+
+	    responseData.setRating(4.0);
+	    responseData.setOperatingHours("10:00 AM - 11:00 PM");
+
+	    Map data = new HashMap();
+	    data.put("message", "Restaurant Details Fetched Successfully");
+	    data.put("restaurant", responseData);
+
+	    return ResponseEntity.status(HttpStatus.OK).body(data);
+	}
+	
+	
+	
 }
