@@ -104,9 +104,12 @@ public class MenuItemServiceImpl implements MenuItemService {
 		}
 
 		if (menuItemDto.isAvailability() == true) {
-			menuItem.setAvailability(true);
+		    menuItem.setAvailability(true);
+		} 
+		else {
+		    menuItem.setAvailability(false);
 		}
-
+		
 		MenuItem updatedItem = menuItemRepository.save(menuItem);
 
 		return ResponseEntity.status(HttpStatus.OK).body(updatedItem);
