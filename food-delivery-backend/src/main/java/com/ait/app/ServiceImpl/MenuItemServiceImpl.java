@@ -1,11 +1,16 @@
 package com.ait.app.ServiceImpl;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.ait.app.Service.MenuItemService;
+import com.ait.app.controller.MenuItemController;
 import com.ait.app.customExceptionHandler.RestaurantException;
 import com.ait.app.model.MenuItem;
 import com.ait.app.model.Restaurant;
@@ -13,15 +18,19 @@ import com.ait.app.model.User;
 import com.ait.app.repository.MenuItemRepository;
 import com.ait.app.repository.RestaurantRepo;
 import com.ait.app.requestBody.MenuItemDto;
+import com.ait.app.requestBody.PriceResponseDto;
 
 @Service
 public class MenuItemServiceImpl implements MenuItemService {
+
 
     @Autowired
     private MenuItemRepository menuItemRepository;
 
     @Autowired
     private RestaurantRepo restaurantRepo;
+
+   
 
     @Override
     public ResponseEntity<MenuItem> addMenuItem(int restaurantId, MenuItemDto menuItemDto) {
@@ -54,11 +63,11 @@ public class MenuItemServiceImpl implements MenuItemService {
                     HttpStatus.UNAUTHORIZED);
         }
 
-        if (!"ADMIN".equalsIgnoreCase(user.getRole())) {
-            throw new RestaurantException(
-                    "Only restaurant admin can add menu items",
-                    HttpStatus.FORBIDDEN);
-        }
+//        if (!"ADMIN".equalsIgnoreCase(user.getRole())) {
+//            throw new RestaurantException(
+//                    "Only restaurant admin can add menu items",
+//                    HttpStatus.FORBIDDEN);
+//        }
 
         if (menuItemRepository.existsByRestaurantIdAndName(
                 restaurantId, menuItemDto.getName())) {
@@ -81,4 +90,37 @@ public class MenuItemServiceImpl implements MenuItemService {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(savedItem);
     }
+
+	@Override
+	public ResponseEntity getItemDetails(int itemId) {
+		
+		  Optional<MenuItem> menuItem =menuItemRepository.findById(itemId);
+		if(menuItem.isEmpty()) {
+		  throw new RestaurantException("this item is not available ", HttpStatus.NOT_FOUND);
+		}
+		
+		if(!menuItem.get().isAvailability()) {
+			throw new RestaurantException("this item is not available right now ", HttpStatus.FOUND);
+		}
+		
+		try {
+			PriceResponseDto priceDto=new PriceResponseDto();
+			
+			priceDto.setItemId(itemId);
+			priceDto.setPrice(menuItem.get().getPrice());
+			
+			String description =menuItem.get().getDescription();
+			
+			Map priceResponse =new HashMap<>();
+			priceResponse.put("priceDto", priceDto);
+			priceResponse.put("description", description);
+			
+			return ResponseEntity.status(HttpStatus.FOUND).body(priceResponse);
+			
+			
+		} catch (Exception e) {
+			throw new RestaurantException("There is an internal issue for getting item price ", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+	}
 }

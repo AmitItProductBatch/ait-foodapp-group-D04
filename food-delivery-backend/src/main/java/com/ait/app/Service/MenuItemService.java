@@ -8,4 +8,6 @@ import com.ait.app.requestBody.MenuItemDto;
 public interface MenuItemService {
 
     ResponseEntity<MenuItem> addMenuItem(int restaurantId, MenuItemDto menuItemDto);
+
+	ResponseEntity getItemDetails(int itemId);
 }
