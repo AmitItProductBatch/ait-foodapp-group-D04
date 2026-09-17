@@ -23,7 +23,7 @@ public class Cart {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private int Cartid;
+	private int id;
 	@CreationTimestamp
 	private LocalDateTime createdAt;
 	@UpdateTimestamp
@@ -39,11 +39,11 @@ public class Cart {
 	List<CartItems> cartItems;
 
 	public int getCartid() {
-		return Cartid;
+		return id;
 	}
 
 	public void setCartid(int cartid) {
-		Cartid = cartid;
+		id = cartid;
 	}
 
 	public LocalDateTime getCreatedAt() {

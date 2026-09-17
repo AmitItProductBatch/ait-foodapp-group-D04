@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import com.ait.app.customExceptionHandler.AddressException;
 import com.ait.app.customExceptionHandler.CartException;
+import com.ait.app.customExceptionHandler.CartItemServiceException;
 import com.ait.app.customExceptionHandler.RestaurantException;
 import com.ait.app.customExceptionHandler.UserException;
 
@@ -56,5 +57,10 @@ public class GlobalException {
 		public ResponseEntity handleCartException(CartException e) {
 
 			return new ResponseEntity(e.getMessage(), e.getHttpStatus());
+		}
+	   @ExceptionHandler(CartItemServiceException.class)
+		public ResponseEntity<String> handleCartItemServiceException(CartItemServiceException cartItemServiceException) {
+
+			return new ResponseEntity<>(cartItemServiceException.getMessage(), cartItemServiceException.getHttpStatus());
 		}
 }

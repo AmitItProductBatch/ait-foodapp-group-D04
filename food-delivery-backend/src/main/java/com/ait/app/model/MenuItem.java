@@ -23,6 +23,20 @@ public class MenuItem {
 	private boolean availability;
 
 	private String category;
+	
+	private boolean active;
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
 
 	@ManyToOne
 	@JoinColumn(name = "restaurant_id")
