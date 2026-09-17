@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ait.app.Service.MenuItemService;
 import com.ait.app.model.MenuItem;
 import com.ait.app.requestBody.MenuItemDto;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 @RequestMapping("/api/restaurants")
@@ -29,6 +32,13 @@ public class MenuItemController {
         return menuItemService.addMenuItem(restaurantId, menuItemDto);
     }
     
+    @GetMapping("item/{itemId}")
+    public ResponseEntity getItemPrice(@PathVariable int itemId) {
+    	
+        return menuItemService.getItemDetails(itemId);
+    }
+    
+}
     @DeleteMapping("/{itemId}/{userId}")
     public ResponseEntity deleteMenuItem( @PathVariable("itemId") int itemId, @PathVariable ("userId")int userId) {
 
