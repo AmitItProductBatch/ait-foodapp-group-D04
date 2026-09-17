@@ -29,7 +29,7 @@ public class MenuItemController {
         return menuItemService.addMenuItem(restaurantId, menuItemDto);
     }
     
-    @DeleteMapping("/api/menu/{itemId}/{userId}")
+    @DeleteMapping("/{itemId}/{userId}")
     public ResponseEntity deleteMenuItem( @PathVariable("itemId") int itemId, @PathVariable ("userId")int userId) {
 
         return menuItemService.deleteMenuItem(itemId, userId);
