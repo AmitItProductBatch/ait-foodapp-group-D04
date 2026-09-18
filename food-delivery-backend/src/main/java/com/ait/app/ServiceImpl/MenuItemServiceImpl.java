@@ -116,4 +116,63 @@ public class MenuItemServiceImpl implements MenuItemService {
 
 		return ResponseEntity.status(HttpStatus.OK).body(updatedItem);
 	}
+
+public ResponseEntity deleteMenuItem(int itemId, int userId) {
+		
+		  Optional<MenuItem> optional = menuItemRepository.findById(itemId);
+
+		    if (optional.isEmpty()) {
+		        throw new RestaurantException("Menu item not found", HttpStatus.NOT_FOUND);
+		    }
+
+		    MenuItem item = optional.get();
+
+		    Restaurant restaurant = item.getRestaurant();
+
+		    if (restaurant.getUser().getId() != userId) {
+		        throw new RestaurantException("You are not authorized to delete this item", HttpStatus.UNAUTHORIZED);
+		    }
+
+		    item.setActive(false);
+		    menuItemRepository.save(item);
+
+		    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		}
+		
+		
+		@Override
+	public ResponseEntity getItemDetails(int itemId) {
+		
+		  Optional<MenuItem> menuItem =menuItemRepository.findById(itemId);
+		if(menuItem.isEmpty()) {
+		  throw new RestaurantException("this item is not available ", HttpStatus.NOT_FOUND);
+		}
+		
+		if(!menuItem.get().isAvailability()) {
+			throw new RestaurantException("this item is not available right now ", HttpStatus.FOUND);
+		}
+		
+		try {
+			PriceResponseDto priceDto=new PriceResponseDto();
+			
+			priceDto.setItemId(itemId);
+			priceDto.setPrice(menuItem.get().getPrice());
+			
+			String description =menuItem.get().getDescription();
+			
+			Map priceResponse =new HashMap<>();
+			priceResponse.put("priceDto", priceDto);
+			priceResponse.put("description", description);
+			
+			return ResponseEntity.status(HttpStatus.FOUND).body(priceResponse);
+			
+			
+		} catch (Exception e) {
+			throw new RestaurantException("There is an internal issue for getting item price ", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+	}
+
+
+	
 }
