@@ -4,15 +4,7 @@ public class CartItemDto {
 	private int cartId;
 	private int MenuItemId;
 	private int quantity;
-	private double unitPrice;
-
-	public double getUnitPrice() {
-		return unitPrice;
-	}
-
-	public void setUnitPrice(double unitPrice) {
-		this.unitPrice = unitPrice;
-	}
+	
 
 	public int getCartId() {
 		return cartId;

@@ -74,4 +74,17 @@ public class CartItemServiceImpl implements CartItemService{
 	return	cartItemRepository.save(cartItem);
 
 	}
+	@Override
+	public void deleteCartItem(int id) {
+		Optional<CartItems> optional = cartItemRepository.findById(id);
+
+		if (optional.isEmpty()) {
+			throw new CartItemServiceException("Cart item not found in your active cart with id:" +id, HttpStatus.NOT_FOUND);
+		}
+
+		Cart cart = optional.get().getCart();
+
+		cartItemRepository.deleteById(id);
+
+	}
 }

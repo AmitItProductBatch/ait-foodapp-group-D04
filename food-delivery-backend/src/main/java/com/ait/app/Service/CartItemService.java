@@ -5,4 +5,5 @@ import com.ait.app.requestBody.CartItemDto;
 
 public interface CartItemService {
 	CartItems createCartItem(CartItemDto dto);
+	void deleteCartItem(int id);
 }
