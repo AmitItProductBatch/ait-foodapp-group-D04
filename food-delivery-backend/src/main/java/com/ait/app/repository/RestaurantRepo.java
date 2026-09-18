@@ -14,15 +14,15 @@ public interface RestaurantRepo extends JpaRepository<Restaurant, Integer> {
 			    SELECT DISTINCT r
 			    FROM Restaurant r
 			    LEFT JOIN r.cuisine c
+			    LEFT JOIN r.menuItems m
 			    WHERE r.active = true
 			    AND r.approved = true
 			    AND (:rating = 0 OR r.rating >= :rating)
 			    AND (:location = '' OR r.address LIKE CONCAT('%', :location, '%'))
 			    AND (:cuisine = '' OR c.name LIKE CONCAT('%', :cuisine, '%'))
-			    
+			    AND (:menuItem = '' OR m.name LIKE CONCAT('%', :menuItem, '%'))
 			""")
-	Page<Restaurant> findRestaurants(
-			@Param("rating") Double rating, @Param("location") String location,
-			@Param("cuisine") String cuisine, Pageable pageable);
+	Page<Restaurant> findRestaurants(Double rating, String location, String cuisine, String menuItem,
+			Pageable pageable);
 
 }

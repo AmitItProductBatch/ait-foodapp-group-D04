@@ -2,6 +2,7 @@ package com.ait.app.requestBody;
 
 import java.util.List;
 
+
 import com.ait.app.model.Cuisine;
 import com.ait.app.model.MenuItem;
 
@@ -13,6 +14,7 @@ public class RestaurantDto {
 	private int userId;
 	private double rating;
 	private List<Cuisine> cuisine;
+	private List<MenuItem> menuItems;
 	private boolean active;
 	private boolean approved;
 
@@ -78,6 +80,14 @@ public class RestaurantDto {
 
 	public void setApproved(boolean approved) {
 		this.approved = approved;
+	}
+
+	public List<MenuItem> getMenuItems() {
+		return menuItems;
+	}
+
+	public void setMenuItems(List<MenuItem> menuItems) {
+		this.menuItems = menuItems;
 	}
 
 	

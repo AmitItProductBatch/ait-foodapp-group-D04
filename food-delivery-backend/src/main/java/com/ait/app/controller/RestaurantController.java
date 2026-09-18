@@ -37,9 +37,11 @@ public class RestaurantController {
 
 			@RequestParam(required = false) String cuisine,
 
+			@RequestParam(required = false) String menuItem,
+
 			Pageable pageable) {
 
-		Page<RestaurantDto> page = restaurantService.getRestaurants(rating, location, cuisine, pageable);
+		Page<RestaurantDto> page = restaurantService.getRestaurants(rating, location, cuisine, menuItem, pageable);
 
 		return ResponseEntity.ok(page);
 	}

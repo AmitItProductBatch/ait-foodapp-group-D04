@@ -17,6 +17,7 @@ public interface RestaurantService{
 	            Double rating,
 	            String location,
 	            String cuisine,
+	            String menuItem,
 	            Pageable pageable);
 	
 	

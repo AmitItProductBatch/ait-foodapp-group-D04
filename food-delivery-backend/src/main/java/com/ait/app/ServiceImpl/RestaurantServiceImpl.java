@@ -79,7 +79,8 @@ public class RestaurantServiceImpl implements RestaurantService {
 	}
 
 	@Override
-	public Page<RestaurantDto> getRestaurants(Double rating, String location, String cuisine, Pageable pageable) {
+	public Page<RestaurantDto> getRestaurants(Double rating, String location, String cuisine, String menuItem,
+			Pageable pageable) {
 
 		try {
 
@@ -95,7 +96,11 @@ public class RestaurantServiceImpl implements RestaurantService {
 				rating = 0.0;
 			}
 
-			Page<Restaurant> restaurants = restaurantrepo.findRestaurants(rating, location, cuisine, pageable);
+			if (menuItem == null) {
+				menuItem = "";
+			}
+			Page<Restaurant> restaurants = restaurantrepo.findRestaurants(rating, location, cuisine, menuItem,
+					pageable);
 
 			if (restaurants.isEmpty()) {
 
@@ -115,6 +120,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 				dto.setAddress(r.getAddress());
 				dto.setContactNo(r.getContactNo());
 				dto.setCuisine(r.getCuisine());
+				dto.setMenuItems(r.getMenuItems());
 				dto.setRating(r.getRating());
 				dto.setActive(r.isActive());
 				dto.setApproved(r.isApproved());
