@@ -54,11 +54,7 @@ public class MenuItemServiceImpl implements MenuItemService {
                     HttpStatus.UNAUTHORIZED);
         }
 
-        if (!"ADMIN".equalsIgnoreCase(user.getRole())) {
-            throw new RestaurantException(
-                    "Only restaurant admin can add menu items",
-                    HttpStatus.FORBIDDEN);
-        }
+       
 
         if (menuItemRepository.existsByRestaurantIdAndName(
                 restaurantId, menuItemDto.getName())) {
@@ -76,6 +72,7 @@ public class MenuItemServiceImpl implements MenuItemService {
         menuItem.setAvailability(menuItemDto.isAvailability());
         menuItem.setCategory(menuItemDto.getCategory());
         menuItem.setRestaurant(restaurant);
+        
 
         MenuItem savedItem = menuItemRepository.save(menuItem);
 

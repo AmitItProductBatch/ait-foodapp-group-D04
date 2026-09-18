@@ -19,11 +19,13 @@ public class MenuItemController {
     @Autowired
     private MenuItemService menuItemService;
 
-    @PostMapping("/{restaurantId}/menu")
+    @PostMapping("/{restaurantId}/menu-items")
     public ResponseEntity<MenuItem> addMenuItem(
             @PathVariable int restaurantId,
             @RequestBody MenuItemDto menuItemDto) {
 
         return menuItemService.addMenuItem(restaurantId, menuItemDto);
     }
+    
+    
 }
