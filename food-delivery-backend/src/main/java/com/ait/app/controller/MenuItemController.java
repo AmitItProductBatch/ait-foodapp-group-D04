@@ -36,4 +36,18 @@ public class MenuItemController {
 		return menuItemService.updateMenuItem(itemId, menuItemDto);
 
 	}
+
+	 @GetMapping("item/{itemId}")
+    public ResponseEntity getItemPrice(@PathVariable int itemId) {
+    	
+        return menuItemService.getItemDetails(itemId);
+    }
+    
+
+    @DeleteMapping("/{itemId}/{userId}")
+    public ResponseEntity deleteMenuItem( @PathVariable("itemId") int itemId, @PathVariable ("userId")int userId) {
+
+        return menuItemService.deleteMenuItem(itemId, userId);
+    }
+	
 }
