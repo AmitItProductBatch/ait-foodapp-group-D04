@@ -46,13 +46,11 @@ public class MenuItemController {
     }
     
 
-    @PostMapping("/{restaurantId}/menu-items")
-    public ResponseEntity<MenuItem> addMenuItem(
-            @PathVariable int restaurantId,
-            @RequestBody MenuItemDto menuItemDto) {
+	 @DeleteMapping("/{itemId}/{userId}")
+	    public ResponseEntity deleteMenuItem( @PathVariable("itemId") int itemId, @PathVariable ("userId")int userId) {
 
-        return menuItemService.deleteMenuItem(itemId, userId);
-    }
+	        return menuItemService.deleteMenuItem(itemId, userId);
+	    }
     
     
 }
