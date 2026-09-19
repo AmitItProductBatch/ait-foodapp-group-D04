@@ -41,6 +41,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SERVER_PORT: 8084
+      SPRING_MAIL_HOST: mailpit
+      SPRING_MAIL_PORT: 1025
     depends_on:
       postgres-db:
         condition: service_healthy
