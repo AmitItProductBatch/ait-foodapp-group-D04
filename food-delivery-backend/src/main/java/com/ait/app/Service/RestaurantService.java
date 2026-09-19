@@ -5,7 +5,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
+
+//import com.ait.app.model.Restaurant;
 import com.ait.app.requestBody.RestaurantDto;
+
 
 
 
@@ -22,5 +25,13 @@ public interface RestaurantService{
 	
 	
 	
+	ResponseEntity getRestaurantById(int id);
 
 }
+
+
+
+
+
+
+
