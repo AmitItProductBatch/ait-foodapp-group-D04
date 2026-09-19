@@ -2,8 +2,6 @@ package com.ait.app.model;
 
 import java.util.List;
 
-
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
@@ -17,7 +15,6 @@ import jakarta.persistence.OneToMany;
 
 @Entity
 public class Restaurant {
-	
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,15 +22,18 @@ public class Restaurant {
 	private String name;
 	private String address;
 	private String contactNo;
-	
+	private double rating;
+	private boolean active;
+	private boolean approved;
+
 	@ManyToOne()
-	@JoinColumn(name="user_id")
+	@JoinColumn(name = "user_id")
 	private User user;
-	
+
 	@JsonIgnore
-	@OneToMany(mappedBy = "restaurant",cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL)
 	private List<Cuisine> cuisine;
-	
+
 	@JsonIgnore
 	@OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL)
 	private List<MenuItem> menuItems;
@@ -45,12 +45,13 @@ public class Restaurant {
 	public void setCuisine(List<Cuisine> cuisine) {
 		this.cuisine = cuisine;
 	}
+
 	public List<MenuItem> getMenuItems() {
-	    return menuItems;
+		return menuItems;
 	}
 
 	public void setMenuItems(List<MenuItem> menuItems) {
-	    this.menuItems = menuItems;
+		this.menuItems = menuItems;
 	}
 
 	public String getContactNo() {
@@ -93,5 +94,28 @@ public class Restaurant {
 		this.user = user;
 	}
 
+	public double getRating() {
+		return rating;
+	}
+
+	public void setRating(double rating) {
+		this.rating = rating;
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+
+	public boolean isApproved() {
+		return approved;
+	}
+
+	public void setApproved(boolean approved) {
+		this.approved = approved;
+	}
 
 }

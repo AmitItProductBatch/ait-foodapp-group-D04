@@ -50,6 +50,7 @@ public class MenuItemServiceImpl implements MenuItemService {
 
 		Optional<Restaurant> optionalRestaurant = restaurantRepo.findById(restaurantId);
 
+       
 		if (optionalRestaurant.isEmpty()) {
 			throw new RestaurantException("Restaurant not found", HttpStatus.NOT_FOUND);
 		}
