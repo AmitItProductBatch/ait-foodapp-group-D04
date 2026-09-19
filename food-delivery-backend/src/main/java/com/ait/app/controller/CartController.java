@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ait.app.Service.CartItemService;
+import com.ait.app.Service.CartService;
 import com.ait.app.requestBody.CartItemDto;
 
 @RestController
@@ -18,6 +19,9 @@ import com.ait.app.requestBody.CartItemDto;
 public class CartController {
 	@Autowired
 	private CartItemService cartItemService;
+	
+	@Autowired
+	CartService cartService;
 
 	@PostMapping("/items")
 	public ResponseEntity<String> saveCartItem(@RequestBody CartItemDto dto) {
@@ -32,5 +36,13 @@ public class CartController {
 		cartItemService.deleteCartItem(id);
 
 		return new ResponseEntity<>("Cart item deleted successfully", HttpStatus.OK);
+	}
+	@DeleteMapping("/delete/{cid}")
+	public ResponseEntity deleteallCart(@PathVariable int cid) {
+
+		cartService.deleteFromCart(cid);
+
+		return new ResponseEntity("Cart deleted successfully for cart id :" + cid, HttpStatus.OK);
+
 	}
 }
