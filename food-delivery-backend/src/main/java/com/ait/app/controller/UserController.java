@@ -25,10 +25,10 @@ public class UserController {
 	@Autowired
 	UserService userService;
 
-	@PostMapping("/add")
-	public ResponseEntity saveUser(@RequestBody User user) {
+	@PostMapping("/add/{roleName}")
+	public ResponseEntity saveUser(@RequestBody User user,@PathVariable String roleName) {
 
-		return userService.addUser(user);
+		return userService.addUser(user, roleName);
 	}
 
 	@DeleteMapping("/{id}")

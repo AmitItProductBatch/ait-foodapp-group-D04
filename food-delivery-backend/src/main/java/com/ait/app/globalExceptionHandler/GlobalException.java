@@ -13,6 +13,7 @@ import com.ait.app.customExceptionHandler.AddressException;
 import com.ait.app.customExceptionHandler.CartException;
 import com.ait.app.customExceptionHandler.CartItemServiceException;
 import com.ait.app.customExceptionHandler.RestaurantException;
+import com.ait.app.customExceptionHandler.RoleException;
 import com.ait.app.customExceptionHandler.UserException;
 
 @ControllerAdvice
@@ -63,4 +64,10 @@ public class GlobalException {
 
 			return new ResponseEntity<>(cartItemServiceException.getMessage(), cartItemServiceException.getHttpStatus());
 		}
+	   
+	   @ExceptionHandler(RoleException.class)
+	   public ResponseEntity handleRoleException(RoleException roleException) {
+		   return new ResponseEntity(roleException.getMessage(),roleException.getHttpStatus());
+		   
+	   }
 }
