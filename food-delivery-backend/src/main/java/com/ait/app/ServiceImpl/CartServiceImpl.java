@@ -39,4 +39,18 @@ public class CartServiceImpl implements CartService {
 		return cartRepository.save(cart);
 	}
 
+	@Override
+	public void deleteFromCart(int cid) {
+		Optional<Cart> optional = cartRepository.findById(cid);
+
+		if (optional.isEmpty()) {
+			throw new CartException("Cart not found for id " + cid, HttpStatus.NOT_FOUND);
+		}
+
+		Cart cart = optional.get();
+
+		cartRepository.deleteById(cart.getCartid());
+		
+	}
+
 }
