@@ -10,11 +10,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.ait.app.Service.MenuItemService;
-import com.ait.app.controller.MenuItemController;
 import com.ait.app.customExceptionHandler.RestaurantException;
+import com.ait.app.model.Category;
 import com.ait.app.model.MenuItem;
 import com.ait.app.model.Restaurant;
 import com.ait.app.model.User;
+import com.ait.app.repository.CategoryRepository;
 import com.ait.app.repository.MenuItemRepository;
 import com.ait.app.repository.RestaurantRepo;
 import com.ait.app.requestBody.MenuItemDto;
@@ -28,6 +29,9 @@ public class MenuItemServiceImpl implements MenuItemService {
 
 	@Autowired
 	private RestaurantRepo restaurantRepo;
+
+	@Autowired
+	CategoryRepository categoryrepo;
 
 	@Override
 	public ResponseEntity<MenuItem> addMenuItem(int restaurantId, MenuItemDto menuItemDto) {
@@ -44,9 +48,17 @@ public class MenuItemServiceImpl implements MenuItemService {
 			throw new RestaurantException("Price must be greater than 0", HttpStatus.BAD_REQUEST);
 		}
 
-		if (menuItemDto.getCategory() == null || menuItemDto.getCategory().isBlank()) {
+		if (menuItemDto.getCategoryId() <= 0) {
 			throw new RestaurantException("Category is required", HttpStatus.BAD_REQUEST);
 		}
+
+		Optional<Category> optionalCategory = categoryrepo.findById(menuItemDto.getCategoryId());
+
+		if (optionalCategory.isEmpty()) {
+			throw new RestaurantException("Category not found", HttpStatus.NOT_FOUND);
+		}
+
+		Category category = optionalCategory.get();
 
 		Optional<Restaurant> optionalRestaurant = restaurantRepo.findById(restaurantId);
 
@@ -63,7 +75,8 @@ public class MenuItemServiceImpl implements MenuItemService {
 		}
 
 		// if (!"ADMIN".equalsIgnoreCase(user.getRole())) {
-		// 	throw new RestaurantException("Only restaurant admin can add menu items", HttpStatus.FORBIDDEN);
+		// throw new RestaurantException("Only restaurant admin can add menu items",
+		// HttpStatus.FORBIDDEN);
 		// }
 
 		if (menuItemRepository.existsByRestaurantIdAndName(restaurantId, menuItemDto.getName())) {
@@ -78,7 +91,7 @@ public class MenuItemServiceImpl implements MenuItemService {
 		menuItem.setDescription(menuItemDto.getDescription());
 		menuItem.setPrice(menuItemDto.getPrice());
 		menuItem.setAvailability(menuItemDto.isAvailability());
-		menuItem.setCategory(menuItemDto.getCategory());
+		menuItem.setCategory(category);
 		menuItem.setRestaurant(restaurant);
 
 		MenuItem savedItem = menuItemRepository.save(menuItem);
@@ -108,73 +121,69 @@ public class MenuItemServiceImpl implements MenuItemService {
 		}
 
 		if (menuItemDto.isAvailability() == true) {
-		    menuItem.setAvailability(true);
-		} 
-		else {
-		    menuItem.setAvailability(false);
+			menuItem.setAvailability(true);
+		} else {
+			menuItem.setAvailability(false);
 		}
-		
+
 		MenuItem updatedItem = menuItemRepository.save(menuItem);
 
 		return ResponseEntity.status(HttpStatus.OK).body(updatedItem);
 	}
 
-public ResponseEntity deleteMenuItem(int itemId, int userId) {
-		
-		  Optional<MenuItem> optional = menuItemRepository.findById(itemId);
+	public ResponseEntity deleteMenuItem(int itemId, int userId) {
 
-		    if (optional.isEmpty()) {
-		        throw new RestaurantException("Menu item not found", HttpStatus.NOT_FOUND);
-		    }
+		Optional<MenuItem> optional = menuItemRepository.findById(itemId);
 
-		    MenuItem item = optional.get();
-
-		    Restaurant restaurant = item.getRestaurant();
-
-		    if (restaurant.getUser().getId() != userId) {
-		        throw new RestaurantException("You are not authorized to delete this item", HttpStatus.UNAUTHORIZED);
-		    }
-
-		    item.setActive(false);
-		    menuItemRepository.save(item);
-
-		    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		if (optional.isEmpty()) {
+			throw new RestaurantException("Menu item not found", HttpStatus.NOT_FOUND);
 		}
-		
-		
-		@Override
-	public ResponseEntity getItemDetails(int itemId) {
-		
-		  Optional<MenuItem> menuItem =menuItemRepository.findById(itemId);
-		if(menuItem.isEmpty()) {
-		  throw new RestaurantException("this item is not available ", HttpStatus.NOT_FOUND);
+
+		MenuItem item = optional.get();
+
+		Restaurant restaurant = item.getRestaurant();
+
+		if (restaurant.getUser().getId() != userId) {
+			throw new RestaurantException("You are not authorized to delete this item", HttpStatus.UNAUTHORIZED);
 		}
-		
-		if(!menuItem.get().isAvailability()) {
-			throw new RestaurantException("this item is not available right now ", HttpStatus.FOUND);
-		}
-		
-		try {
-			PriceResponseDto priceDto=new PriceResponseDto();
-			
-			priceDto.setItemId(itemId);
-			priceDto.setPrice(menuItem.get().getPrice());
-			
-			String description =menuItem.get().getDescription();
-			
-			Map priceResponse =new HashMap<>();
-			priceResponse.put("priceDto", priceDto);
-			priceResponse.put("description", description);
-			
-			return ResponseEntity.status(HttpStatus.FOUND).body(priceResponse);
-			
-			
-		} catch (Exception e) {
-			throw new RestaurantException("There is an internal issue for getting item price ", HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-		
+
+		item.setActive(false);
+		menuItemRepository.save(item);
+
+		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
+	@Override
+	public ResponseEntity getItemDetails(int itemId) {
 
-	
+		Optional<MenuItem> menuItem = menuItemRepository.findById(itemId);
+		if (menuItem.isEmpty()) {
+			throw new RestaurantException("this item is not available ", HttpStatus.NOT_FOUND);
+		}
+
+		if (!menuItem.get().isAvailability()) {
+			throw new RestaurantException("this item is not available right now ", HttpStatus.FOUND);
+		}
+
+		try {
+			PriceResponseDto priceDto = new PriceResponseDto();
+
+			priceDto.setItemId(itemId);
+			priceDto.setPrice(menuItem.get().getPrice());
+
+			String description = menuItem.get().getDescription();
+
+			Map priceResponse = new HashMap<>();
+			priceResponse.put("priceDto", priceDto);
+			priceResponse.put("description", description);
+
+			return ResponseEntity.status(HttpStatus.FOUND).body(priceResponse);
+
+		} catch (Exception e) {
+			throw new RestaurantException("There is an internal issue for getting item price ",
+					HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+	}
+
 }

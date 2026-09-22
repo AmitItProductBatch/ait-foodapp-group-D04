@@ -22,7 +22,9 @@ public class MenuItem {
 
 	private boolean availability;
 
-	private String category;
+	@ManyToOne
+	@JoinColumn(name= "category_id")
+	private Category category;
 	
 	private boolean active;
 
@@ -78,11 +80,13 @@ public class MenuItem {
 		this.availability = availability;
 	}
 
-	public String getCategory() {
+	
+
+	public Category getCategory() {
 		return category;
 	}
 
-	public void setCategory(String category) {
+	public void setCategory(Category category) {
 		this.category = category;
 	}
 
