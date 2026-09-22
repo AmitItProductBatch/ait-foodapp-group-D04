@@ -11,11 +11,14 @@ import org.springframework.stereotype.Service;
 
 import com.ait.app.Service.CartService;
 import com.ait.app.Service.UserService;
+import com.ait.app.customExceptionHandler.RoleException;
 import com.ait.app.customExceptionHandler.UserException;
 import com.ait.app.model.Address;
 import com.ait.app.model.Cart;
+import com.ait.app.model.Role;
 import com.ait.app.model.User;
 import com.ait.app.repository.AddressRepository;
+import com.ait.app.repository.RoleRepository;
 import com.ait.app.repository.UserRepository;
 import com.ait.app.requestBody.AddressDto;
 import com.ait.app.requestBody.UserDto;
@@ -30,26 +33,78 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	AddressRepository addressRepository;
-	
+
 	@Autowired
 	CartServiceImpl cartServiceImpl;
 
+	@Autowired
+	RoleRepository roleRepository;
+
 	@Override
-	public ResponseEntity addUser(User user) {
+	public ResponseEntity addUser(User user, String roleName) {
 
 		if (user.getName() == null || user.getName().trim().isEmpty() || user.getEmail() == null
 				|| user.getEmail().trim().isEmpty() || user.getPass() == null || user.getPass().trim().isEmpty()
-				|| user.getRole() == null || user.getRole().trim().isEmpty() || user.getMobno() == null
-				|| user.getMobno().trim().isEmpty()) {
+				|| user.getMobno() == null || user.getMobno().trim().isEmpty()) {
 
 			throw new UserException("All fields are required..", HttpStatus.BAD_REQUEST);
 		}
 
-		if (userRepository.existsByEmail(user.getEmail())) {
-			throw new UserException("User Already Exists.....", HttpStatus.CONFLICT);
+		String email = user.getEmail().trim().toLowerCase();
+		user.setEmail(email);
+
+		if (!email.endsWith("@gmail.com")) {
+			throw new UserException("Only @gmail.com email is allowed", HttpStatus.BAD_REQUEST);
 		}
 
+		if (roleName == null || roleName.trim().isEmpty()) {
+			throw new RoleException("Role is required", HttpStatus.BAD_REQUEST);
+		}
+
+		String role = roleName.trim().toUpperCase();
+		List<Role> allRoles = roleRepository.findAll();
+		Optional<Role> optionalRole = roleRepository.findByName(role);
+
+		if (optionalRole.isEmpty()) {
+
+			List<String> roleNames = new ArrayList<>();
+
+			for (Role r : allRoles) {
+				roleNames.add(r.getName());
+			}
+
+			throw new RoleException("Role " + role + " is not available. Total roles available: " + allRoles.size()
+					+ ". Available roles: " + roleNames, HttpStatus.BAD_REQUEST);
+		}
+
+		Role selectedRole = optionalRole.get();
+
 		try {
+
+			User existingUser = userRepository.findByEmail(email);
+			if (existingUser != null) {
+				String existingRoles = existingUser.getRoleName();
+				if (existingRoles == null || existingRoles.trim().isEmpty()) {
+					existingUser.setRoleName(role);
+
+				} else {
+
+					String[] roles = existingRoles.split(",");
+
+					for (String existingRole : roles) {
+
+						if (existingRole.trim().equalsIgnoreCase(role)) {
+							throw new UserException("User is already assigned in roles: " + existingRoles,
+									HttpStatus.CONFLICT);
+						}
+					}
+					existingUser.setRoleName(existingRoles + "," + role);
+				}
+
+				User savedUser = userRepository.save(existingUser);
+				return ResponseEntity.status(HttpStatus.OK).body(role + " Role Assigned Successfully");
+			}
+			user.setRoleName(role);
 
 			if (user.getAddresses() != null) {
 				for (Address address : user.getAddresses()) {
@@ -66,18 +121,14 @@ public class UserServiceImpl implements UserService {
 
 			dto.setName(savedUser.getName());
 			dto.setEmail(savedUser.getEmail());
-			dto.setRole(savedUser.getRole());
 			dto.setMobno(savedUser.getMobno());
 			dto.setCreatedDt(savedUser.getCreatedDt());
-
+			dto.setRoles(savedUser.getRoleName());
 			List<AddressDto> addressDtos = new ArrayList();
-
 			if (savedUser.getAddresses() != null) {
 
 				for (Address address : savedUser.getAddresses()) {
-
 					AddressDto addressDto = new AddressDto();
-
 					addressDto.setId(address.getId());
 					addressDto.setAddressLabel(address.getAddressLabel());
 					addressDto.setStreetAddress(address.getStreetAddress());
@@ -86,17 +137,17 @@ public class UserServiceImpl implements UserService {
 					addressDto.setCity(address.getCity());
 					addressDto.setPostalCode(address.getPostalCode());
 					addressDto.setDeliveryInstructions(address.getDeliveryInstructions());
-
 					addressDtos.add(addressDto);
 				}
 			}
 
 			dto.setAddresses(addressDtos);
 
-			return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+			return ResponseEntity.status(HttpStatus.CREATED).body("User details added successfully");
+		} catch (UserException e) {
+			throw e;
 
 		} catch (Exception e) {
-
 			throw new UserException("Failed to save User", HttpStatus.BAD_REQUEST);
 		}
 
@@ -116,30 +167,47 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 
+	@Override
 	public UserDto getUserById(int id) {
 
 		try {
 
 			User user = userRepository.findById(id).get();
-
 			if (userRepository.existsById(id)) {
 
 				UserDto userDto = new UserDto();
-
 				userDto.setCreatedDt(user.getCreatedDt());
 				userDto.setEmail(user.getEmail());
 				userDto.setMobno(user.getMobno());
 				userDto.setName(user.getName());
-				userDto.setRole(user.getRole());
 
+				if (user.getRoleName() != null && !user.getRoleName().isEmpty()) {
+					userDto.setRoles(user.getRoleName());
+				}
+				List<AddressDto> addressDtos = new ArrayList<>();
+
+				if (user.getAddresses() != null) {
+					for (Address address : user.getAddresses()) {
+						AddressDto addressDto = new AddressDto();
+						addressDto.setId(address.getId());
+						addressDto.setAddressLabel(address.getAddressLabel());
+						addressDto.setStreetAddress(address.getStreetAddress());
+						addressDto.setApartmentSuiteFloor(address.getApartmentSuiteFloor());
+						addressDto.setLandmark(address.getLandmark());
+						addressDto.setCity(address.getCity());
+						addressDto.setPostalCode(address.getPostalCode());
+						addressDto.setDeliveryInstructions(address.getDeliveryInstructions());
+
+						addressDtos.add(addressDto);
+					}
+				}
+
+				userDto.setAddresses(addressDtos);
 				return userDto;
 			}
-
 			throw new UserException("User not found", HttpStatus.NOT_FOUND);
-
 		} catch (Exception e) {
 			throw new UserException("User not found of id " + id, HttpStatus.NOT_FOUND);
-
 		}
 	}
 
@@ -216,4 +284,5 @@ public class UserServiceImpl implements UserService {
 		return ResponseEntity.status(HttpStatus.OK).body(user);
 
 	}
+
 }
