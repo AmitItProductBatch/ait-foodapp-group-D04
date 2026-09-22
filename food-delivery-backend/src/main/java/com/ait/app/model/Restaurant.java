@@ -38,6 +38,11 @@ public class Restaurant {
 	@OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL)
 	private List<MenuItem> menuItems;
 
+	
+	@JsonIgnore
+	@OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL)
+	private List<Category> categories;
+
 	public List<Cuisine> getCuisine() {
 		return cuisine;
 	}
@@ -94,6 +99,12 @@ public class Restaurant {
 		this.user = user;
 	}
 
+	public List<Category> getCategories() {
+		return categories;
+	}
+
+	public void setCategories(List<Category> categories) {
+		this.categories = categories;
 	public double getRating() {
 		return rating;
 	}
