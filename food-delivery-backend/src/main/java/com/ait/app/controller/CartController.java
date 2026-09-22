@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ait.app.Service.CartItemService;
 import com.ait.app.Service.CartService;
 import com.ait.app.requestBody.CartItemDto;
+import com.ait.app.requestBody.CartRequestDto;
 import com.ait.app.requestBody.CartResponseDto;
 
 @RestController
@@ -58,5 +59,12 @@ public class CartController {
 
 		return new ResponseEntity("Cart deleted successfully for cart id :" + cid, HttpStatus.OK);
 
+	}
+	@PostMapping("/add")
+	public ResponseEntity addtoCart(@RequestBody CartRequestDto dto) {
+
+		cartService.saveCart(dto);
+
+		return new ResponseEntity("Cart added successfully", HttpStatus.CREATED);
 	}
 }

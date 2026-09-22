@@ -11,11 +11,14 @@ import org.springframework.stereotype.Service;
 import com.ait.app.Service.CartService;
 import com.ait.app.customExceptionHandler.CartException;
 import com.ait.app.model.Cart;
+import com.ait.app.model.Restaurant;
 import com.ait.app.model.CartItems;
 import com.ait.app.model.User;
 import com.ait.app.repository.CartItemRepository;
 import com.ait.app.repository.CartRepository;
+import com.ait.app.repository.RestaurantRepo;
 import com.ait.app.repository.UserRepository;
+import com.ait.app.requestBody.CartRequestDto;
 import com.ait.app.requestBody.CartItemResponseDto;
 import com.ait.app.requestBody.CartResponseDto;
 
@@ -28,6 +31,9 @@ public class CartServiceImpl implements CartService {
 	@Autowired
 	UserRepository userRepository;
 
+	@Autowired
+	RestaurantRepo restaurantRepo;
+  
 	@Autowired
 	CartItemRepository cartItemRepository;
 
@@ -95,6 +101,54 @@ public class CartServiceImpl implements CartService {
 		response.setTotalAmount(totalAmount);
 
 		return response;
+	}
+
+	@Override
+	public void saveCart(CartRequestDto dto) {
+		int userId = dto.getUserId();
+		if (userId <= 0) {
+
+			throw new CartException("Invalid user id", HttpStatus.BAD_REQUEST);
+		}
+
+		Optional<User> uo = userRepository.findById(userId);
+
+		if (uo.isEmpty()) {
+
+			throw new CartException("User not found", HttpStatus.NOT_FOUND);
+		}
+		
+		if (cartRepository.existsByUserId(userId)) {
+
+			
+			throw new CartException("Cart already exists for this user", HttpStatus.CONFLICT);
+		}
+
+		long restaurentId = dto.getRestaurantId();
+
+		if (restaurentId <= 0) {
+
+			
+			throw new CartException("Invalid restaurant id", HttpStatus.BAD_REQUEST);
+		}
+
+		Optional<Restaurant> ro = restaurantRepo.findById((int) restaurentId);//findById(restaurentId);
+
+		if (ro.isEmpty()) {
+
+			throw new CartException("Restaurant not Found", HttpStatus.NOT_FOUND);
+		}
+
+		User user = uo.get();
+		Restaurant restaurant = ro.get();
+
+		Cart cart = new Cart();
+
+		cart.setUser(user);
+		cart.setRestaurant(restaurant);
+
+		cartRepository.save(cart);
+		
 	}
 
 }
