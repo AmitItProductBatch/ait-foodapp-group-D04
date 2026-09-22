@@ -2,6 +2,8 @@ package com.ait.app.model;
 
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.annotation.Generated;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -20,6 +22,7 @@ public class Cuisine {
 	
 	@ManyToOne()
 	@JoinColumn(name = "restaurant_id")
+	@JsonIgnore
 	private Restaurant restaurant;
 
 	public String getName() {
