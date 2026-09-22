@@ -13,4 +13,5 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Integer> {
     List<MenuItem> findByRestaurantIdAndAvailabilityTrue(int restaurantId);
 
     List<MenuItem> findByRestaurantIdAndActiveTrue(int restaurantId);
+    boolean existsByCategoryId(int categoryId);
 }
