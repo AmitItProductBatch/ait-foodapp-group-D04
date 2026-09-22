@@ -1,6 +1,9 @@
 package com.ait.app.ServiceImpl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -20,15 +23,17 @@ import com.ait.app.repository.MenuItemRepository;
 import com.ait.app.repository.RestaurantRepo;
 import com.ait.app.requestBody.MenuItemDto;
 import com.ait.app.requestBody.PriceResponseDto;
+import com.ait.app.response.MenuItemResponse;
+import com.ait.app.response.MenuResponse;
 
 @Service
 public class MenuItemServiceImpl implements MenuItemService {
 
-	@Autowired
-	private MenuItemRepository menuItemRepository;
+    @Autowired
+    private MenuItemRepository menuItemRepository;
 
-	@Autowired
-	private RestaurantRepo restaurantRepo;
+    @Autowired
+    private RestaurantRepo restaurantRepo;
 
 	@Autowired
 	CategoryRepository categoryrepo;
@@ -36,17 +41,18 @@ public class MenuItemServiceImpl implements MenuItemService {
 	@Override
 	public ResponseEntity<MenuItem> addMenuItem(int restaurantId, MenuItemDto menuItemDto) {
 
-		if (menuItemDto.getName() == null || menuItemDto.getName().isBlank()) {
-			throw new RestaurantException("Name is required", HttpStatus.BAD_REQUEST);
-		}
+        if (menuItemDto.getName() == null || menuItemDto.getName().trim().isEmpty()) {
+            throw new RestaurantException("Name is required", HttpStatus.BAD_REQUEST);
+        }
 
-		if (menuItemDto.getDescription() == null || menuItemDto.getDescription().isBlank()) {
-			throw new RestaurantException("Description is required", HttpStatus.BAD_REQUEST);
-		}
+        if (menuItemDto.getDescription() == null
+                || menuItemDto.getDescription().trim().isEmpty()) {
+            throw new RestaurantException("Description is required", HttpStatus.BAD_REQUEST);
+        }
 
-		if (menuItemDto.getPrice() <= 0) {
-			throw new RestaurantException("Price must be greater than 0", HttpStatus.BAD_REQUEST);
-		}
+        if (menuItemDto.getPrice() <= 0) {
+            throw new RestaurantException("Price must be greater than 0", HttpStatus.BAD_REQUEST);
+        }
 
 		if (menuItemDto.getCategoryId() <= 0) {
 			throw new RestaurantException("Category is required", HttpStatus.BAD_REQUEST);
@@ -62,30 +68,37 @@ public class MenuItemServiceImpl implements MenuItemService {
 
 		Optional<Restaurant> optionalRestaurant = restaurantRepo.findById(restaurantId);
 
-		if (optionalRestaurant.isEmpty()) {
-			throw new RestaurantException("Restaurant not found", HttpStatus.NOT_FOUND);
-		}
+        if (optionalRestaurant.isEmpty()) {
+            throw new RestaurantException("Restaurant not found", HttpStatus.NOT_FOUND);
+        }
 
-		Restaurant restaurant = optionalRestaurant.get();
+        Restaurant restaurant = optionalRestaurant.get();
 
-		User user = restaurant.getUser();
+        User user = restaurant.getUser();
 
-		if (user == null) {
-			throw new RestaurantException("No user is linked with this restaurant", HttpStatus.UNAUTHORIZED);
-		}
+        if (user == null) {
+            throw new RestaurantException(
+                    "No user is linked with this restaurant",
+                    HttpStatus.UNAUTHORIZED);
+        }
 
-		// if (!"ADMIN".equalsIgnoreCase(user.getRole())) {
-		// throw new RestaurantException("Only restaurant admin can add menu items",
-		// HttpStatus.FORBIDDEN);
-		// }
+        if (menuItemRepository.existsByRestaurantIdAndName(
+                restaurantId, menuItemDto.getName())) {
+		
 
-		if (menuItemRepository.existsByRestaurantIdAndName(restaurantId, menuItemDto.getName())) {
+            throw new RestaurantException(
+                    "Menu item with this name already exists for this restaurant",
+                    HttpStatus.CONFLICT);
+        }
 
-			throw new RestaurantException("Menu item with this name already exists for this restaurant",
-					HttpStatus.CONFLICT);
-		}
+        MenuItem menuItem = new MenuItem();
 
-		MenuItem menuItem = new MenuItem();
+        menuItem.setName(menuItemDto.getName());
+        menuItem.setDescription(menuItemDto.getDescription());
+        menuItem.setPrice(menuItemDto.getPrice());
+        menuItem.setAvailability(menuItemDto.isAvailability());
+        menuItem.setCategory(menuItemDto.getCategory());
+        menuItem.setRestaurant(restaurant);
 
 		menuItem.setName(menuItemDto.getName());
 		menuItem.setDescription(menuItemDto.getDescription());
@@ -93,32 +106,42 @@ public class MenuItemServiceImpl implements MenuItemService {
 		menuItem.setAvailability(menuItemDto.isAvailability());
 		menuItem.setCategory(category);
 		menuItem.setRestaurant(restaurant);
+        MenuItem savedItem = menuItemRepository.save(menuItem);
 
-		MenuItem savedItem = menuItemRepository.save(menuItem);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedItem);
+    }
 
-		return ResponseEntity.status(HttpStatus.CREATED).body(savedItem);
-	}
+    @Override
+    public ResponseEntity updateMenuItem(int itemId, MenuItemDto menuItemDto) {
 
-	@Override
-	public ResponseEntity updateMenuItem(int itemId, MenuItemDto menuItemDto) {
+        Optional<MenuItem> optionalMenuItem = menuItemRepository.findById(itemId);
 
-		Optional<MenuItem> optionalMenuItem = menuItemRepository.findById(itemId);
+        if (optionalMenuItem.isEmpty()) {
+            throw new RestaurantException(
+                    "Menu item not found",
+                    HttpStatus.NOT_FOUND);
+        }
 
-		if (optionalMenuItem.isEmpty()) {
+        MenuItem menuItem = optionalMenuItem.get();
 
-			throw new RestaurantException("Menu item not found", HttpStatus.NOT_FOUND);
-		}
+        if (menuItemDto.getPrice() > 0) {
+            menuItem.setPrice(menuItemDto.getPrice());
+        }
 
-		MenuItem menuItem = optionalMenuItem.get();
+        if (menuItemDto.getDescription() != null) {
+            menuItem.setDescription(menuItemDto.getDescription());
+        }
 
-		if (menuItemDto.getPrice() > 0) {
-			menuItem.setPrice(menuItemDto.getPrice());
-		}
+        if (menuItemDto.isAvailability()) {
+            menuItem.setAvailability(true);
+        } else {
+            menuItem.setAvailability(false);
+        }
 
-		if (menuItemDto.getDescription() != null) {
+        MenuItem updatedItem = menuItemRepository.save(menuItem);
 
-			menuItem.setDescription(menuItemDto.getDescription());
-		}
+        return ResponseEntity.status(HttpStatus.OK).body(updatedItem);
+    }
 
 		if (menuItemDto.isAvailability() == true) {
 			menuItem.setAvailability(true);
@@ -127,9 +150,10 @@ public class MenuItemServiceImpl implements MenuItemService {
 		}
 
 		MenuItem updatedItem = menuItemRepository.save(menuItem);
+    @Override
+    public ResponseEntity deleteMenuItem(int itemId, int userId) {
 
-		return ResponseEntity.status(HttpStatus.OK).body(updatedItem);
-	}
+        Optional<MenuItem> optional = menuItemRepository.findById(itemId);
 
 	public ResponseEntity deleteMenuItem(int itemId, int userId) {
 

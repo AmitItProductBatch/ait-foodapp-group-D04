@@ -22,6 +22,9 @@ public class Restaurant {
 	private String name;
 	private String address;
 	private String contactNo;
+	private double rating;
+	private boolean active;
+	private boolean approved;
 
 	@ManyToOne()
 	@JoinColumn(name = "user_id")
@@ -102,6 +105,28 @@ public class Restaurant {
 
 	public void setCategories(List<Category> categories) {
 		this.categories = categories;
+	public double getRating() {
+		return rating;
+	}
+
+	public void setRating(double rating) {
+		this.rating = rating;
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+
+	public boolean isApproved() {
+		return approved;
+	}
+
+	public void setApproved(boolean approved) {
+		this.approved = approved;
 	}
 
 }
