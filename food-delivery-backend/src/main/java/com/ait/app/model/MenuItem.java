@@ -23,32 +23,26 @@ public class MenuItem {
 	private double price;
 
 	private boolean availability;
-
-	@ManyToOne
-	@JoinColumn(name= "category_id")
-	private Category category;
+	
+	private String category;
 	
 	private boolean active;
-
-	public boolean isActive() {
-		return active;
-	}
-
-	public void setActive(boolean active) {
-		this.active = active;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
+	
 	@ManyToOne
 	@JoinColumn(name = "restaurant_id")
 	@JsonIgnore
 	private Restaurant restaurant;
+	
+	@ManyToOne
+	@JoinColumn(name= "category_id")
+	private int categoryId;
 
 	public int getId() {
 		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
 	}
 
 	public String getName() {
@@ -83,14 +77,20 @@ public class MenuItem {
 		this.availability = availability;
 	}
 
-	
-
-	public Category getCategory() {
+	public String getCategory() {
 		return category;
 	}
 
-	public void setCategory(Category category) {
+	public void setCategory(String category) {
 		this.category = category;
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
 	}
 
 	public Restaurant getRestaurant() {
@@ -100,4 +100,11 @@ public class MenuItem {
 	public void setRestaurant(Restaurant restaurant) {
 		this.restaurant = restaurant;
 	}
+
+
+	
+	
+	
+	
+
 }

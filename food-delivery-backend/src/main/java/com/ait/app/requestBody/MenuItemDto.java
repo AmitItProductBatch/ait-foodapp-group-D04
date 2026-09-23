@@ -5,7 +5,8 @@ public class MenuItemDto {
 	private String description;
 	private double price;
 	private boolean availability;
-	private int categoryId;
+	private String category;
+	//private int categoryId;
 
 	public String getName() {
 		return name;
@@ -39,13 +40,23 @@ public class MenuItemDto {
 		this.availability = availability;
 	}
 
-	public int getCategoryId() {
-		return categoryId;
+	public String getCategory() {
+		return category;
 	}
 
-	public void setCategoryId(int categoryId) {
-		this.categoryId = categoryId;
+	public void setCategory(String category) {
+		this.category = category;
 	}
+
+//	public int getCategoryId() {
+//		return categoryId;
+//	}
+//
+//	public void setCategoryId(int categoryId) {
+//		this.categoryId = categoryId;
+//	}
+	
+	
 
 	
 }

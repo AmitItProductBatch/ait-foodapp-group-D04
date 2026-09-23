@@ -55,9 +55,9 @@ public class CartServiceImpl implements CartService {
 	}
 
 	@Override
-	public CartResponseDto getCart() {
+	public CartResponseDto getCart(int userId) {
 
-		int userId = 8;
+		
 
 		Optional<Cart> optionalCart = cartRepository.findByUserId(userId);
 
@@ -150,5 +150,22 @@ public class CartServiceImpl implements CartService {
 		cartRepository.save(cart);
 		
 	}
+	
+	@Override
+	public void deleteFromCart(int cid) {
+		Optional<Cart> optional = cartRepository.findById(cid);
+
+		if (optional.isEmpty()) {
+			throw new CartException("Cart not found for id " + cid, HttpStatus.NOT_FOUND);
+		}
+
+		Cart cart = optional.get();
+
+		cartRepository.deleteById(cart.getCartid());
+		
+	}
 
 }
+
+
+

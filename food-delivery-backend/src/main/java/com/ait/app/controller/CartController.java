@@ -23,12 +23,9 @@ public class CartController {
 
 	@Autowired
 	private CartItemService cartItemService;
-	
-	@Autowired
-	CartService cartService;
 
 	@Autowired
-	private CartService cartService;
+	CartService cartService;
 
 	@PostMapping("/items")
 	public ResponseEntity<String> saveCartItem(@RequestBody CartItemDto dto) {
@@ -41,7 +38,8 @@ public class CartController {
 	@GetMapping
 	public ResponseEntity<CartResponseDto> getCart() {
 
-		return new ResponseEntity<>(cartService.getCart(), HttpStatus.OK);
+		return new ResponseEntity<>(cartService.getCart(0), HttpStatus.OK);
+
 	}
 
 	@DeleteMapping("/{id}")
@@ -51,7 +49,7 @@ public class CartController {
 
 		return new ResponseEntity<>("Cart item deleted successfully", HttpStatus.OK);
 	}
-  
+
 	@DeleteMapping("/delete/{cid}")
 	public ResponseEntity deleteallCart(@PathVariable int cid) {
 
@@ -60,6 +58,7 @@ public class CartController {
 		return new ResponseEntity("Cart deleted successfully for cart id :" + cid, HttpStatus.OK);
 
 	}
+
 	@PostMapping("/add")
 	public ResponseEntity addtoCart(@RequestBody CartRequestDto dto) {
 

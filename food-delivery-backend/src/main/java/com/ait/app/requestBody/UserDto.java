@@ -74,4 +74,14 @@ public class UserDto {
 		this.createdDt = createdDt;
 	}
 
+	public String getRoles() {
+		return roles;
+	}
+
+	public void setRoles(String roles) {
+		this.roles = roles;
+	}
+	
+	
+
 }

@@ -56,9 +56,7 @@ public class CategoryServiceImpl implements CategoryService {
 			throw new RestaurantException("No user is linked with this restaurant", HttpStatus.UNAUTHORIZED);
 		}
 
-		if (!restaurant.getUser().getRole().equals("ADMIN")) {
-			throw new RestaurantException("Only admin can add category", HttpStatus.FORBIDDEN);
-		}
+
 
 		List<Category> categories = categoryRepository.findByRestaurantId(restaurantId);
 
