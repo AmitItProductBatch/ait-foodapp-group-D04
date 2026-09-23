@@ -2,6 +2,7 @@ package com.ait.app.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -33,8 +34,7 @@ public class MenuItem {
 	@JsonIgnore
 	private Restaurant restaurant;
 	
-	@ManyToOne
-	@JoinColumn(name= "category_id")
+	@Column(name = "category_id")
 	private int categoryId;
 
 	public int getId() {
@@ -99,6 +99,14 @@ public class MenuItem {
 
 	public void setRestaurant(Restaurant restaurant) {
 		this.restaurant = restaurant;
+	}
+
+	public int getCategoryId() {
+		return categoryId;
+	}
+
+	public void setCategoryId(int categoryId) {
+		this.categoryId = categoryId;
 	}
 
 

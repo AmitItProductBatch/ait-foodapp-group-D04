@@ -57,7 +57,7 @@ public class MenuItemServiceImpl implements MenuItemService {
 //			throw new RestaurantException("Category is required", HttpStatus.BAD_REQUEST);
 //		}
 
-		Optional<Category> optionalCategory = categoryrepo.findByCategoryName(menuItemDto.getCategory());
+		Optional<Category> optionalCategory = categoryrepo.findByName(menuItemDto.getCategory());
 		
 		
 		if (optionalCategory.isEmpty()) {
@@ -92,7 +92,8 @@ public class MenuItemServiceImpl implements MenuItemService {
 		menuItem.setDescription(menuItemDto.getDescription());
 		menuItem.setPrice(menuItemDto.getPrice());
 		menuItem.setAvailability(menuItemDto.isAvailability());
-		//menuItem.setCategoryId(menuItemDto.getCategoryId());
+		menuItem.setCategory(category.getName());
+		menuItem.setCategoryId(category.getId());
 		menuItem.setRestaurant(restaurant);
 		MenuItem savedItem = menuItemRepository.save(menuItem);
 
