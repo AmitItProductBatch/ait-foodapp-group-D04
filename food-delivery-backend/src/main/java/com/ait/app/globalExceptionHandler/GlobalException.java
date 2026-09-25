@@ -1,6 +1,7 @@
 package com.ait.app.globalExceptionHandler;
 
 import java.util.HashMap;
+
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -12,8 +13,10 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import com.ait.app.customExceptionHandler.AddressException;
 import com.ait.app.customExceptionHandler.CartException;
 import com.ait.app.customExceptionHandler.CartItemServiceException;
+import com.ait.app.customExceptionHandler.DeliveryRuleException;
 import com.ait.app.customExceptionHandler.PriceCalculationException;
 import com.ait.app.customExceptionHandler.RestaurantException;
+import com.ait.app.customExceptionHandler.RoleException;
 import com.ait.app.customExceptionHandler.UserException;
 
 @ControllerAdvice
@@ -63,11 +66,29 @@ public class GlobalException {
 		return new ResponseEntity<>(cartItemServiceException.getMessage(), cartItemServiceException.getHttpStatus());
 	}
 
+	@ExceptionHandler(RoleException.class)
+	public ResponseEntity handleRoleException(RoleException roleException) {
+		return new ResponseEntity(roleException.getMessage(), roleException.getHttpStatus());
+
+	}
+
 	@ExceptionHandler(PriceCalculationException.class)
 	public ResponseEntity handlePriceCalculationException(PriceCalculationException p) {
 
 		return new ResponseEntity(p.getMsg(), p.getStatusCode());
 
 	}
+	
+	@ExceptionHandler(DeliveryRuleException.class)
+	public ResponseEntity handleDeliveryException(DeliveryRuleException e) {
+		
+		Map error = new HashMap<>();
+		error.put("errorMsg", e.getMsg());
 
-}
+		return ResponseEntity.status(e.getStatusCode()).body(error);
+	}
+
+	
+	}
+
+
