@@ -7,73 +7,79 @@ import java.math.BigDecimal;
 @Entity
 public class OrderItem {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int id;
 
-//    @ManyToOne
-//    @JoinColumn(name = "order_id")
-//    private Order order;
+	@ManyToOne
+	@JoinColumn(name = "order_id")
+	private Order order;
 
-    @ManyToOne
-    @JoinColumn(name = "menu_item_id")
-    private MenuItem menuItem;
+	@ManyToOne
+	@JoinColumn(name = "menu_item_id")
+	private MenuItem menuItem;
 
-    private String itemName;
+	private String itemName;
 
-    private BigDecimal unitPrice;
+	private BigDecimal unitPrice;
 
-    private int quantity;
+	private int quantity;
 
-    private BigDecimal subtotal;
+	private BigDecimal subtotal;
 
-    public int getId() {
-        return id;
-    }
+	public int getId() {
+		return id;
+	}
 
-    public void setId(int id) {
-        this.id = id;
-    }
+	public void setId(int id) {
+		this.id = id;
+	}
 
+	public MenuItem getMenuItem() {
+		return menuItem;
+	}
 
-    public MenuItem getMenuItem() {
-        return menuItem;
-    }
+	public void setMenuItem(MenuItem menuItem) {
+		this.menuItem = menuItem;
+	}
 
-    public void setMenuItem(MenuItem menuItem) {
-        this.menuItem = menuItem;
-    }
+	public String getItemName() {
+		return itemName;
+	}
 
-    public String getItemName() {
-        return itemName;
-    }
+	public void setItemName(String itemName) {
+		this.itemName = itemName;
+	}
 
-    public void setItemName(String itemName) {
-        this.itemName = itemName;
-    }
+	public BigDecimal getUnitPrice() {
+		return unitPrice;
+	}
 
-    public BigDecimal getUnitPrice() {
-        return unitPrice;
-    }
+	public void setUnitPrice(BigDecimal unitPrice) {
+		this.unitPrice = unitPrice;
+	}
 
-    public void setUnitPrice(BigDecimal unitPrice) {
-        this.unitPrice = unitPrice;
-    }
+	public int getQuantity() {
+		return quantity;
+	}
 
-    public int getQuantity() {
-        return quantity;
-    }
+	public void setQuantity(int quantity) {
+		this.quantity = quantity;
+	}
 
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
+	public BigDecimal getSubtotal() {
+		return subtotal;
+	}
 
-    public BigDecimal getSubtotal() {
-        return subtotal;
-    }
+	public Order getOrder() {
+		return order;
+	}
 
-    public void setSubtotal(BigDecimal subtotal) {
-        this.subtotal = subtotal;
-    }
+	public void setOrder(Order order) {
+		this.order = order;
+	}
+
+	public void setSubtotal(BigDecimal subtotal) {
+		this.subtotal = subtotal;
+	}
 }
-
