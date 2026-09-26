@@ -13,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import com.ait.app.customExceptionHandler.AddressException;
 import com.ait.app.customExceptionHandler.CartException;
 import com.ait.app.customExceptionHandler.CartItemServiceException;
+import com.ait.app.customExceptionHandler.DeliveryRuleException;
 import com.ait.app.customExceptionHandler.PriceCalculationException;
 import com.ait.app.customExceptionHandler.RestaurantException;
 import com.ait.app.customExceptionHandler.RoleException;
@@ -77,5 +78,17 @@ public class GlobalException {
 		return new ResponseEntity(p.getMsg(), p.getStatusCode());
 
 	}
+	
+	@ExceptionHandler(DeliveryRuleException.class)
+	public ResponseEntity handleDeliveryException(DeliveryRuleException e) {
+		
+		Map error = new HashMap<>();
+		error.put("errorMsg", e.getMsg());
 
-}
+		return ResponseEntity.status(e.getStatusCode()).body(error);
+	}
+
+	
+	}
+
+
