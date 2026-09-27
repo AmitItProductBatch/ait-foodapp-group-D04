@@ -3,6 +3,7 @@ package com.ait.app.requestBody;
 public class CartItemResponseDto {
 
     private int itemId;
+    private int cartItemId;
     private String itemName;
     private double unitPrice;
     private int quantity;
@@ -14,6 +15,14 @@ public class CartItemResponseDto {
 
     public void setItemId(int itemId) {
         this.itemId = itemId;
+    }
+
+    public int getCartItemId() {
+        return cartItemId;
+    }
+
+    public void setCartItemId(int cartItemId) {
+        this.cartItemId = cartItemId;
     }
 
     public String getItemName() {
