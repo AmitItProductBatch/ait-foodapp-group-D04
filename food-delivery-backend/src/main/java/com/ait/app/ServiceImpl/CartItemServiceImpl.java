@@ -6,8 +6,10 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.ait.app.Service.CartItemService;
+import com.ait.app.Service.CartService;
 import com.ait.app.customExceptionHandler.CartItemServiceException;
 import com.ait.app.model.Cart;
 import com.ait.app.model.CartItems;
@@ -16,6 +18,8 @@ import com.ait.app.repository.CartItemRepository;
 import com.ait.app.repository.CartRepository;
 import com.ait.app.repository.MenuItemRepository;
 import com.ait.app.requestBody.CartItemDto;
+import com.ait.app.requestBody.CartItemQuantityDto;
+import com.ait.app.requestBody.CartResponseDto;
 
 @Service
 public class CartItemServiceImpl implements CartItemService{
@@ -27,6 +31,9 @@ public class CartItemServiceImpl implements CartItemService{
 
 	@Autowired
 	MenuItemRepository menuItemRepo;
+
+	@Autowired
+	CartService cartService;
 
 	@Override
 	public CartItems createCartItem(CartItemDto dto) {
@@ -86,5 +93,32 @@ public class CartItemServiceImpl implements CartItemService{
 
 		cartItemRepository.deleteById(id);
 
+	}
+
+	@Override
+	@Transactional
+	public CartResponseDto updateCartItem(int id, CartItemQuantityDto dto) {
+		if (dto.getQuantity() == null || dto.getQuantity() < 0) {
+			throw new CartItemServiceException("Quantity is required and cannot be negative", HttpStatus.BAD_REQUEST);
+		}
+
+		Optional<CartItems> optional = cartItemRepository.findById(id);
+
+		if (optional.isEmpty() || optional.get().getCart() == null || optional.get().getCart().getUser() == null) {
+			throw new CartItemServiceException("Cart item not found in your active cart with id:" + id, HttpStatus.NOT_FOUND);
+		}
+
+		CartItems cartItem = optional.get();
+		Cart cart = cartItem.getCart();
+
+		if (dto.getQuantity() == 0) {
+			cartItemRepository.delete(cartItem);
+		} else {
+			cartItem.setQuantity(dto.getQuantity());
+			cartItem.setSubtotal(cartItem.getUnitprice() * dto.getQuantity());
+			cartItemRepository.save(cartItem);
+		}
+
+		return cartService.getCart(cart.getUser().getId());
 	}
 }
