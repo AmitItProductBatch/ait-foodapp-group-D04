@@ -6,6 +6,7 @@ public class MenuItemDto {
 	private double price;
 	private boolean availability;
 	private String category;
+	private boolean active;
 	//private int categoryId;
 
 	public String getName() {
@@ -47,6 +48,16 @@ public class MenuItemDto {
 	public void setCategory(String category) {
 		this.category = category;
 	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+	
+	
 
 //	public int getCategoryId() {
 //		return categoryId;

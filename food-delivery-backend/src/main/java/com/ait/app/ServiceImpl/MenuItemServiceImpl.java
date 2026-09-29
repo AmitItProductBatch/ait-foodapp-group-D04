@@ -95,6 +95,7 @@ public class MenuItemServiceImpl implements MenuItemService {
 		menuItem.setCategory(category.getName());
 		menuItem.setCategoryId(category.getId());
 		menuItem.setRestaurant(restaurant);
+		menuItem.setActive(menuItemDto.isActive());
 		MenuItem savedItem = menuItemRepository.save(menuItem);
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(savedItem);
