@@ -36,7 +36,6 @@ public class RatingServiceImpl implements RatingService {
 	@Transactional
 	public ResponseEntity<String> rateRestaurant(RatingDto dto) {
 
-		// rating must be between 1 and 5
 		if (dto.getRating() < 1 || dto.getRating() > 5) {
 			throw new RestaurantException("Rating must be between 1 and 5", HttpStatus.BAD_REQUEST);
 		}
@@ -56,18 +55,15 @@ public class RatingServiceImpl implements RatingService {
 		Restaurant restaurant = optionalRestaurant.get();
 		Order order = optionalOrder.get();
 
-		// the order must belong to the user who is giving the rating
 		if (order.getUserId() != dto.getUserId()) {
 			throw new RestaurantException("You can rate only your own orders", HttpStatus.FORBIDDEN);
 		}
 
-		// the order must be from this restaurant and must be delivered
 		if (order.getRestaurantId() != dto.getRestaurantId() || !"DELIVERED".equalsIgnoreCase(order.getStatus())) {
 			throw new RestaurantException("You can rate only a restaurant from which you have a delivered order",
 					HttpStatus.BAD_REQUEST);
 		}
 
-		// if this order is already rated, update it. Otherwise create a new rating
 		Optional<Rating> existingRating = ratingRepository.findByOrderId(dto.getOrderId());
 
 		Rating rating;
@@ -84,7 +80,6 @@ public class RatingServiceImpl implements RatingService {
 		rating.setRating(dto.getRating());
 		ratingRepository.save(rating);
 
-		// recalculate the average rating of the restaurant
 		List<Rating> ratings = ratingRepository.findByRestaurantId(dto.getRestaurantId());
 
 		int total = 0;
