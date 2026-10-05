@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,8 @@ import com.ait.app.requestBody.CartResponseDto;
 @Service
 public class CartServiceImpl implements CartService {
 
+	private static final Logger logger = LoggerFactory.getLogger(CartServiceImpl.class);
+
 	@Autowired
 	CartRepository cartRepository;
 
@@ -33,16 +37,21 @@ public class CartServiceImpl implements CartService {
 
 	@Autowired
 	RestaurantRepo restaurantRepo;
-  
+
 	@Autowired
 	CartItemRepository cartItemRepository;
 
 	@Override
 	public Cart createCart(int userId) {
 
+		logger.info("Create cart request received. userId: {}", userId);
+
 		Optional<User> optionalUser = userRepository.findById(userId);
 
 		if (optionalUser.isEmpty()) {
+
+			logger.error("Cart could not be created because user was not found. userId: {}", userId);
+
 			throw new CartException("Cart creation failed", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
@@ -51,13 +60,24 @@ public class CartServiceImpl implements CartService {
 		Cart cart = new Cart();
 		cart.setUser(user);
 
-		return cartRepository.save(cart);
+		try {
+
+			Cart savedCart = cartRepository.save(cart);
+
+			logger.info("Cart created successfully. userId: {}, cartId: {}", userId, savedCart.getCartid());
+
+			return savedCart;
+
+		} catch (Exception e) {
+
+			logger.error("Cart could not be saved. userId: {}", userId);
+
+			throw new CartException("Unable to create cart", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 
 	@Override
 	public CartResponseDto getCart(int userId) {
-
-		
 
 		Optional<Cart> optionalCart = cartRepository.findByUserId(userId);
 
@@ -118,10 +138,9 @@ public class CartServiceImpl implements CartService {
 
 			throw new CartException("User not found", HttpStatus.NOT_FOUND);
 		}
-		
+
 		if (cartRepository.existsByUserId(userId)) {
 
-			
 			throw new CartException("Cart already exists for this user", HttpStatus.CONFLICT);
 		}
 
@@ -129,11 +148,10 @@ public class CartServiceImpl implements CartService {
 
 		if (restaurentId <= 0) {
 
-			
 			throw new CartException("Invalid restaurant id", HttpStatus.BAD_REQUEST);
 		}
 
-		Optional<Restaurant> ro = restaurantRepo.findById((int) restaurentId);//findById(restaurentId);
+		Optional<Restaurant> ro = restaurantRepo.findById((int) restaurentId);// findById(restaurentId);
 
 		if (ro.isEmpty()) {
 
@@ -149,9 +167,9 @@ public class CartServiceImpl implements CartService {
 		cart.setRestaurant(restaurant);
 
 		cartRepository.save(cart);
-		
+
 	}
-	
+
 	@Override
 	public void deleteFromCart(int cid) {
 		Optional<Cart> optional = cartRepository.findById(cid);
@@ -163,10 +181,7 @@ public class CartServiceImpl implements CartService {
 		Cart cart = optional.get();
 
 		cartRepository.deleteById(cart.getCartid());
-		
+
 	}
 
 }
-
-
-
