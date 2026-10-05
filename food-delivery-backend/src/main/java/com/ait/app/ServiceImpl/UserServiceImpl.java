@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.ait.app.Service.CartService;
 import com.ait.app.Service.UserService;
 import com.ait.app.customExceptionHandler.RoleException;
 import com.ait.app.customExceptionHandler.UserException;
@@ -27,6 +28,8 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class UserServiceImpl implements UserService {
+
+	private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
 	@Autowired
 	UserRepository userRepository;
@@ -54,18 +57,27 @@ public class UserServiceImpl implements UserService {
 		user.setEmail(email);
 
 		if (!email.endsWith("@gmail.com")) {
+
 			throw new UserException("Only @gmail.com email is allowed", HttpStatus.BAD_REQUEST);
 		}
 
 		if (roleName == null || roleName.trim().isEmpty()) {
+
+			logger.warn("Role is missing while adding user.");
+
 			throw new RoleException("Role is required", HttpStatus.BAD_REQUEST);
 		}
 
 		String role = roleName.trim().toUpperCase();
+
+		logger.info("Checking role for user assignment. roleName: {}", role);
+
 		List<Role> allRoles = roleRepository.findAll();
 		Optional<Role> optionalRole = roleRepository.findByName(role);
 
 		if (optionalRole.isEmpty()) {
+
+			logger.warn("Requested role is not available. roleName: {}", role);
 
 			List<String> roleNames = new ArrayList<>();
 
@@ -79,12 +91,18 @@ public class UserServiceImpl implements UserService {
 
 		Role selectedRole = optionalRole.get();
 
+		logger.info("Role is available for assignment. roleName: {}", role);
+
 		try {
 
 			User existingUser = userRepository.findByEmail(email);
+
 			if (existingUser != null) {
+
 				String existingRoles = existingUser.getRoleName();
+
 				if (existingRoles == null || existingRoles.trim().isEmpty()) {
+
 					existingUser.setRoleName(role);
 
 				} else {
@@ -94,19 +112,31 @@ public class UserServiceImpl implements UserService {
 					for (String existingRole : roles) {
 
 						if (existingRole.trim().equalsIgnoreCase(role)) {
+
+							logger.warn("Role is already assigned to user. roleName: {}", role);
+
 							throw new UserException("User is already assigned in roles: " + existingRoles,
 									HttpStatus.CONFLICT);
 						}
 					}
+
 					existingUser.setRoleName(existingRoles + "," + role);
 				}
 
 				User savedUser = userRepository.save(existingUser);
+
+				logger.info("Role assigned successfully to existing user. userId: {}, roleName: {}", savedUser.getId(),
+						role);
+
 				return ResponseEntity.status(HttpStatus.OK).body(role + " Role Assigned Successfully");
 			}
+
 			user.setRoleName(role);
 
 			if (user.getAddresses() != null) {
+
+				logger.info("Adding address details for new user.");
+
 				for (Address address : user.getAddresses()) {
 					address.setUser(user);
 				}
@@ -114,8 +144,12 @@ public class UserServiceImpl implements UserService {
 
 			User savedUser = userRepository.save(user);
 
+			logger.info("User saved successfully with role. userId: {}, roleName: {}", savedUser.getId(), role);
+
 			Cart savedCart = cartServiceImpl.createCart(savedUser.getId());
-			System.out.println(savedCart.getCartid());
+
+			logger.info("Cart created successfully with user. userId: {}, cartId: {}", savedUser.getId(),
+					savedCart.getCartid());
 
 			UserDto dto = new UserDto();
 
@@ -124,11 +158,15 @@ public class UserServiceImpl implements UserService {
 			dto.setMobno(savedUser.getMobno());
 			dto.setCreatedDt(savedUser.getCreatedDt());
 			dto.setRoles(savedUser.getRoleName());
+
 			List<AddressDto> addressDtos = new ArrayList();
+
 			if (savedUser.getAddresses() != null) {
 
 				for (Address address : savedUser.getAddresses()) {
+
 					AddressDto addressDto = new AddressDto();
+
 					addressDto.setId(address.getId());
 					addressDto.setAddressLabel(address.getAddressLabel());
 					addressDto.setStreetAddress(address.getStreetAddress());
@@ -137,20 +175,27 @@ public class UserServiceImpl implements UserService {
 					addressDto.setCity(address.getCity());
 					addressDto.setPostalCode(address.getPostalCode());
 					addressDto.setDeliveryInstructions(address.getDeliveryInstructions());
+
 					addressDtos.add(addressDto);
 				}
 			}
 
 			dto.setAddresses(addressDtos);
 
+			logger.info("User creation, role assignment and cart creation completed. userId: {}", savedUser.getId());
+
 			return ResponseEntity.status(HttpStatus.CREATED).body("User details added successfully");
+
 		} catch (UserException e) {
+
 			throw e;
 
 		} catch (Exception e) {
+
+			logger.error("User details could not be saved for email: {}", email);
+
 			throw new UserException("Failed to save User", HttpStatus.BAD_REQUEST);
 		}
-
 	}
 
 	@Override
