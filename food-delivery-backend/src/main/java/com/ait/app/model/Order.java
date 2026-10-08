@@ -1,4 +1,3 @@
-
 package com.ait.app.model;
 
 import java.time.LocalDateTime;
@@ -27,8 +26,6 @@ public class Order {
 	private int userId;
 
 	private int restaurantId;
-
-	private Integer deliveryPartnerId;
 
 	@Column(nullable = false)
 	private String deliveryAddressSnapshot;
@@ -72,14 +69,6 @@ public class Order {
 
 	public void setRestaurantId(int restaurantId) {
 		this.restaurantId = restaurantId;
-	}
-
-	public Integer getDeliveryPartnerId() {
-		return deliveryPartnerId;
-	}
-
-	public void setDeliveryPartnerId(Integer deliveryPartnerId) {
-		this.deliveryPartnerId = deliveryPartnerId;
 	}
 
 	public String getDeliveryAddressSnapshot() {

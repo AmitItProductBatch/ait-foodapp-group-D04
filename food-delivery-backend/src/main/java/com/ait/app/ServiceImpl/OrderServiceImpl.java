@@ -8,6 +8,9 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -32,6 +35,7 @@ import com.ait.app.repository.RestaurantRepo;
 import com.ait.app.repository.UserRepository;
 import com.ait.app.requestBody.OrderDto;
 import com.ait.app.requestBody.OrderItemDto;
+import com.ait.app.response.OrderHistoryResponse;
 import com.ait.app.response.OrderResponseDto;
 
 @Service
@@ -306,5 +310,32 @@ public class OrderServiceImpl implements OrderService {
 		logger.info("Order details retrieved successfully. orderId: {}", orderId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(response);
+	}
+
+	@Override
+	public ResponseEntity getUserOrderHistory(int userId, Pageable pageable) {
+		
+		Page<Order> orders = orderRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+
+		List<OrderHistoryResponse> responseList = new ArrayList<>();
+
+		for (Order order : orders.getContent()) {
+
+			OrderHistoryResponse dto = new OrderHistoryResponse();
+
+			dto.setOrderId(order.getId());
+			dto.setOrderStatus(order.getStatus());
+			dto.setPaymentStatus(order.getPaymentStatus());
+			dto.setTotalAmount(order.getTotalAmount());
+			dto.setCreatedAt(order.getCreatedAt());
+
+			responseList.add(dto);
+		}
+		
+
+		
+		Page<OrderHistoryResponse> response =new PageImpl( responseList,(org.springframework.data.domain.Pageable) pageable,orders.getTotalElements());
+		
+		return ResponseEntity.ok(response);
 	}
 }
