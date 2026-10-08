@@ -331,10 +331,17 @@ public class OrderServiceImpl implements OrderService {
 			throw new OrderException("A valid acting user is required", HttpStatus.UNAUTHORIZED);
 		}
 
-		Order order = orderRepository.findById(orderId)
-				.orElseThrow(() -> new OrderException("Order not found", HttpStatus.NOT_FOUND));
-		User actor = userRepository.findById(statusUpdate.getUserId())
-				.orElseThrow(() -> new OrderException("Acting user not found", HttpStatus.UNAUTHORIZED));
+		Optional<Order> optionalOrder = orderRepository.findById(orderId);
+		if (optionalOrder.isEmpty()) {
+			throw new OrderException("Order not found", HttpStatus.NOT_FOUND);
+		}
+		Order order = optionalOrder.get();
+
+		Optional<User> optionalActor = userRepository.findById(statusUpdate.getUserId());
+		if (optionalActor.isEmpty()) {
+			throw new OrderException("Acting user not found", HttpStatus.UNAUTHORIZED);
+		}
+		User actor = optionalActor.get();
 
 		if (!isPlatformAdmin(actor) && !ownsRestaurant(actor, order.getRestaurantId())) {
 			throw new OrderException("Only the order restaurant or a platform administrator may update status",
@@ -378,8 +385,11 @@ public class OrderServiceImpl implements OrderService {
 				}
 			}
 		}
-		return restaurantRepo.findById(restaurantId)
-				.map(restaurant -> restaurant.getUser() != null && restaurant.getUser().getId() == actor.getId())
-				.orElse(false);
+		Optional<Restaurant> optionalRestaurant = restaurantRepo.findById(restaurantId);
+		if (optionalRestaurant.isPresent()) {
+			Restaurant restaurant = optionalRestaurant.get();
+			return restaurant.getUser() != null && restaurant.getUser().getId() == actor.getId();
+		}
+		return false;
 	}
 }
