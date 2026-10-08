@@ -1,6 +1,7 @@
 package com.ait.app.ServiceImpl;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -8,6 +9,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -15,12 +17,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.ait.app.Service.OrderService;
 import com.ait.app.customExceptionHandler.OrderException;
+import com.ait.app.event.OrderStatusChangedEvent;
 import com.ait.app.model.Address;
 import com.ait.app.model.Cart;
 import com.ait.app.model.CartItems;
 import com.ait.app.model.MenuItem;
 import com.ait.app.model.Order;
 import com.ait.app.model.OrderItem;
+import com.ait.app.model.OrderStatus;
+import com.ait.app.model.OrderStatusHistory;
 import com.ait.app.model.Restaurant;
 import com.ait.app.model.User;
 import com.ait.app.repository.AddressRepository;
@@ -28,10 +33,12 @@ import com.ait.app.repository.CartItemRepository;
 import com.ait.app.repository.CartRepository;
 import com.ait.app.repository.MenuItemRepository;
 import com.ait.app.repository.OrderRepository;
+import com.ait.app.repository.OrderStatusHistoryRepository;
 import com.ait.app.repository.RestaurantRepo;
 import com.ait.app.repository.UserRepository;
 import com.ait.app.requestBody.OrderDto;
 import com.ait.app.requestBody.OrderItemDto;
+import com.ait.app.requestBody.OrderStatusUpdateDto;
 import com.ait.app.response.OrderResponseDto;
 
 @Service
@@ -59,6 +66,12 @@ public class OrderServiceImpl implements OrderService {
 
 	@Autowired
 	private OrderRepository orderRepository;
+
+	@Autowired
+	private OrderStatusHistoryRepository orderStatusHistoryRepository;
+
+	@Autowired
+	private ApplicationEventPublisher eventPublisher;
 
 	@Override
 	@Transactional
@@ -306,5 +319,67 @@ public class OrderServiceImpl implements OrderService {
 		logger.info("Order details retrieved successfully. orderId: {}", orderId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(response);
+	}
+
+	@Override
+	@Transactional
+	public ResponseEntity updateOrderStatus(int orderId, OrderStatusUpdateDto statusUpdate) {
+		if (statusUpdate == null || statusUpdate.getStatus() == null) {
+			throw new OrderException("A target status is required", HttpStatus.BAD_REQUEST);
+		}
+		if (statusUpdate.getUserId() <= 0) {
+			throw new OrderException("A valid acting user is required", HttpStatus.UNAUTHORIZED);
+		}
+
+		Order order = orderRepository.findById(orderId)
+				.orElseThrow(() -> new OrderException("Order not found", HttpStatus.NOT_FOUND));
+		User actor = userRepository.findById(statusUpdate.getUserId())
+				.orElseThrow(() -> new OrderException("Acting user not found", HttpStatus.UNAUTHORIZED));
+
+		if (!isPlatformAdmin(actor) && !ownsRestaurant(actor, order.getRestaurantId())) {
+			throw new OrderException("Only the order restaurant or a platform administrator may update status",
+					HttpStatus.FORBIDDEN);
+		}
+
+		OrderStatus current = parseStatus(order.getStatus());
+		OrderStatus target = statusUpdate.getStatus();
+		if (!current.canTransitionTo(target)) {
+			throw new OrderException("Invalid order status transition from " + current + " to " + target,
+					HttpStatus.BAD_REQUEST);
+		}
+
+		LocalDateTime changedAt = LocalDateTime.now();
+		order.setStatus(target.name());
+		orderRepository.save(order);
+		orderStatusHistoryRepository.save(new OrderStatusHistory(orderId, current, target,
+				actor.getId(), changedAt));
+		eventPublisher.publishEvent(new OrderStatusChangedEvent(orderId, order.getUserId(), current, target));
+		return ResponseEntity.ok(order);
+	}
+
+	private OrderStatus parseStatus(String status) {
+		try {
+			return OrderStatus.valueOf(status == null ? "" : status.trim().toUpperCase());
+		} catch (IllegalArgumentException ex) {
+			throw new OrderException("Order has an unknown status", HttpStatus.CONFLICT);
+		}
+	}
+
+	private boolean isPlatformAdmin(User actor) {
+		String role = actor.getRoleName();
+		return role != null && ("ADMIN".equalsIgnoreCase(role) || "PLATFORM_ADMIN".equalsIgnoreCase(role));
+	}
+
+	private boolean ownsRestaurant(User actor, int restaurantId) {
+		if (actor.getRestaurant() != null) {
+			for (Restaurant restaurant : actor.getRestaurant()) {
+				if (restaurant != null && restaurant.getId() == restaurantId) {
+					return true;
+				}
+			}
+		}
+		return restaurantRepo.findById(restaurantId)
+				.map(restaurant -> restaurant.getUser() != null && restaurant.getUser().getId() == actor.getId())
+				.orElse(false);
 	}
 }
