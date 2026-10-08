@@ -30,10 +30,14 @@ public class GeocodingServiceImpl implements GeocodingService {
     public double[] getCoordinates(String address) {
 
         try {
+        	
+        	String addr=address+", Maharashtra, India";
+        	
 
-            System.out.println("Geocoding address: " + address);
+            System.out.println("Geocoding address....: " + addr);
 
-            String encodedAddress = URLEncoder.encode(address, StandardCharsets.UTF_8);
+//            String encodedAddress = URLEncoder.encode(addr, StandardCharsets.UTF_8);
+            String encodedAddress = URLEncoder.encode("Pune, Maharashtra, India", StandardCharsets.UTF_8);
 
             String url = "https://nominatim.openstreetmap.org/search"
                     + "?q=" + encodedAddress
@@ -57,6 +61,7 @@ public class GeocodingServiceImpl implements GeocodingService {
 
             System.out.println("Nominatim response: " + response.body());
 
+            
             if (response.statusCode() != 200
                     || response.body().equals("[]")) {
 

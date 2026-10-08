@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ait.app.Service.OrderService;
+import com.ait.app.Service.OrderTotalService;
 import com.ait.app.customExceptionHandler.OrderException;
 import com.ait.app.model.Address;
 import com.ait.app.model.Cart;
@@ -32,7 +33,10 @@ import com.ait.app.repository.RestaurantRepo;
 import com.ait.app.repository.UserRepository;
 import com.ait.app.requestBody.OrderDto;
 import com.ait.app.requestBody.OrderItemDto;
+import com.ait.app.requestBody.OrderTotalRequestDto;
 import com.ait.app.response.OrderResponseDto;
+import com.ait.app.response.OrderTotalResponseDto;
+import com.ait.app.response.PriceCalculationResponse;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -60,67 +64,75 @@ public class OrderServiceImpl implements OrderService {
 	@Autowired
 	private OrderRepository orderRepository;
 
+	@Autowired
+	private OrderTotalService orderTotalService;
+
 	@Override
 	@Transactional
 	public ResponseEntity placeOrder(OrderDto orderDto) {
 
 		logger.info("Place order request received for userId: {}", orderDto.getUserId());
 
+		
 		Optional<User> optionalUser = userRepository.findById(orderDto.getUserId());
 
 		if (optionalUser.isEmpty()) {
-			logger.warn("User not found for order placement. userId: {}", orderDto.getUserId());
+
 			throw new OrderException("User not found", HttpStatus.NOT_FOUND);
 		}
 
 		User user = optionalUser.get();
 
+		
 		Optional<Cart> optionalCart = cartRepository.findByUserId(user.getId());
 
 		if (optionalCart.isEmpty()) {
-			logger.warn("Cart not found for order placement. userId: {}", user.getId());
+
 			throw new OrderException("Cart not found", HttpStatus.NOT_FOUND);
 		}
 
 		Cart cart = optionalCart.get();
 
+
 		List<CartItems> cartItems = cartItemRepository.findByCartId(cart.getId());
 
 		if (cartItems == null || cartItems.isEmpty()) {
-			logger.warn("Cart is empty. Order cannot be placed. userId: {}", user.getId());
+
 			throw new OrderException("Cart is empty", HttpStatus.BAD_REQUEST);
 		}
 
+		
 		Restaurant restaurant = cart.getRestaurant();
 
 		if (restaurant == null) {
-			logger.error("Restaurant information is missing in cart. userId: {}", user.getId());
+
 			throw new OrderException("Restaurant not found in cart", HttpStatus.BAD_REQUEST);
 		}
 
 		Optional<Restaurant> optionalRestaurant = restaurantRepo.findById(restaurant.getId());
 
 		if (optionalRestaurant.isEmpty()) {
-			logger.error("Restaurant not found while placing order. restaurantId: {}", restaurant.getId());
+
 			throw new OrderException("Restaurant not found", HttpStatus.NOT_FOUND);
 		}
 
 		Restaurant restaurantObj = optionalRestaurant.get();
 
 		if (!restaurantObj.isActive()) {
-			logger.warn("Restaurant is closed. Order cannot be placed. restaurantId: {}", restaurantObj.getId());
+
 			throw new OrderException("Restaurant is closed", HttpStatus.BAD_REQUEST);
 		}
 
 		if (!restaurantObj.isApproved()) {
-			logger.warn("Restaurant is not approved. restaurantId: {}", restaurantObj.getId());
+
 			throw new OrderException("Restaurant is not approved", HttpStatus.BAD_REQUEST);
 		}
 
+		
 		Optional<Address> optionalAddress = addressRepository.findById(orderDto.getAddressId());
 
 		if (optionalAddress.isEmpty()) {
-			logger.warn("Delivery address not found. addressId: {}", orderDto.getAddressId());
+
 			throw new OrderException("Address not found", HttpStatus.NOT_FOUND);
 		}
 
@@ -128,21 +140,15 @@ public class OrderServiceImpl implements OrderService {
 
 		if (address.getUser() == null || address.getUser().getId() != user.getId()) {
 
-			logger.warn("Selected address does not belong to user. userId: {}, addressId: {}", user.getId(),
-					orderDto.getAddressId());
-
 			throw new OrderException("Address does not belong to this user", HttpStatus.BAD_REQUEST);
 		}
 
-		double totalAmount = 0;
+		List<MenuItem> validMenuItems = new ArrayList<>();
 
-		List<OrderItem> orderItems = new ArrayList<>();
-
+		
 		for (CartItems cartItem : cartItems) {
 
 			if (cartItem.getQuantity() <= 0) {
-
-				logger.warn("Invalid item quantity in cart. userId: {}", user.getId());
 
 				throw new OrderException("Quantity must be greater than zero", HttpStatus.BAD_REQUEST);
 			}
@@ -151,16 +157,12 @@ public class OrderServiceImpl implements OrderService {
 
 			if (menuItem == null) {
 
-				logger.error("Menu item information is missing in cart. userId: {}", user.getId());
-
 				throw new OrderException("Menu item not found in cart", HttpStatus.NOT_FOUND);
 			}
 
 			Optional<MenuItem> optionalMenuItem = menuItemRepository.findById(menuItem.getId());
 
 			if (optionalMenuItem.isEmpty()) {
-
-				logger.error("Menu item not found while placing order. menuItemId: {}", menuItem.getId());
 
 				throw new OrderException("Menu item not found: " + menuItem.getId(), HttpStatus.NOT_FOUND);
 			}
@@ -169,62 +171,87 @@ public class OrderServiceImpl implements OrderService {
 
 			if (menuItemObj.getRestaurant() == null || menuItemObj.getRestaurant().getId() != restaurantObj.getId()) {
 
-				logger.warn("Menu item does not belong to selected restaurant. menuItemId: {}, restaurantId: {}",
-						menuItemObj.getId(), restaurantObj.getId());
-
 				throw new OrderException("Menu item does not belong to selected restaurant", HttpStatus.BAD_REQUEST);
 			}
 
 			if (!menuItemObj.isAvailability()) {
-
-				logger.warn("Menu item is unavailable. menuItemId: {}", menuItemObj.getId());
 
 				throw new OrderException("Menu item is unavailable: " + menuItemObj.getName(), HttpStatus.BAD_REQUEST);
 			}
 
 			if (!menuItemObj.isActive()) {
 
-				logger.warn("Menu item is inactive. menuItemId: {}", menuItemObj.getId());
-
 				throw new OrderException("Menu item is inactive: " + menuItemObj.getName(), HttpStatus.BAD_REQUEST);
 			}
 
-			double unitPrice = menuItemObj.getPrice();
+		
+			validMenuItems.add(menuItemObj);
+		}
 
-			double subtotal = unitPrice * cartItem.getQuantity();
+		
+		OrderTotalRequestDto totalRequest = new OrderTotalRequestDto();
 
-			totalAmount = totalAmount + subtotal;
+		totalRequest.setCartId(cart.getId());
+		totalRequest.setRestaurantId(restaurantObj.getId());
+		totalRequest.setAddressId(orderDto.getAddressId());
+
+		OrderTotalResponseDto totalResponse = orderTotalService.calculateOrdertotal(totalRequest);
+
+		double orderTotal = totalResponse.getOrderTotal();
+
+		
+		List<OrderItem> orderItems = new ArrayList<>();
+
+		List<PriceCalculationResponse> calculatedItems = totalResponse.getItems();
+
+		for (int i = 0; i < validMenuItems.size(); i++) {
+
+			MenuItem menuItem = validMenuItems.get(i);
+
+			CartItems cartItem = cartItems.get(i);
+
+			PriceCalculationResponse priceItem = calculatedItems.get(i);
 
 			OrderItem orderItem = new OrderItem();
 
-			orderItem.setMenuItem(menuItemObj);
-			orderItem.setItemName(menuItemObj.getName());
-			orderItem.setUnitPrice(BigDecimal.valueOf(unitPrice));
+			orderItem.setMenuItem(menuItem);
+
+			orderItem.setItemName(menuItem.getName());
+
+			orderItem.setUnitPrice(BigDecimal.valueOf(priceItem.getUnitPrice()));
+
 			orderItem.setQuantity(cartItem.getQuantity());
-			orderItem.setSubtotal(BigDecimal.valueOf(subtotal));
+
+			orderItem.setSubtotal(BigDecimal.valueOf(priceItem.getSubtotal()));
 
 			orderItems.add(orderItem);
 		}
 
+		
 		String deliveryAddressSnapshot = address.getAddressLabel() + ", " + address.getStreetAddress() + ", "
 				+ address.getApartmentSuiteFloor() + ", " + address.getLandmark() + ", " + address.getCity() + ", "
 				+ address.getPostalCode() + ", " + address.getDeliveryInstructions();
 
+		
 		Order order = new Order();
 
 		order.setUserId(user.getId());
 		order.setRestaurantId(restaurantObj.getId());
 		order.setDeliveryAddressSnapshot(deliveryAddressSnapshot);
-		order.setTotalAmount(totalAmount);
+
+		order.setTotalAmount(orderTotal);
+
 		order.setStatus("PLACED");
 		order.setPaymentStatus("PENDING");
 
 		for (OrderItem orderItem : orderItems) {
+
 			orderItem.setOrder(order);
 		}
 
 		order.setOrderItems(orderItems);
 
+		
 		Order savedOrder;
 
 		try {
@@ -238,6 +265,7 @@ public class OrderServiceImpl implements OrderService {
 			throw new OrderException("Unable to save order", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
+		
 		try {
 
 			cartItemRepository.deleteAll(cartItems);
@@ -250,7 +278,7 @@ public class OrderServiceImpl implements OrderService {
 		}
 
 		logger.info("Order placed successfully. orderId: {}, userId: {}, totalAmount: {}", savedOrder.getId(),
-				user.getId(), totalAmount);
+				user.getId(), orderTotal);
 
 		return ResponseEntity.status(HttpStatus.CREATED).body("Your order placed successfully");
 	}
@@ -264,8 +292,6 @@ public class OrderServiceImpl implements OrderService {
 		Optional<Order> optionalOrder = orderRepository.findById(orderId);
 
 		if (optionalOrder.isEmpty()) {
-
-			logger.warn("Order not found. orderId: {}", orderId);
 
 			throw new OrderException("Order not found", HttpStatus.NOT_FOUND);
 		}
@@ -292,9 +318,13 @@ public class OrderServiceImpl implements OrderService {
 				OrderItemDto itemDto = new OrderItemDto();
 
 				itemDto.setMenuItemId(orderItem.getMenuItem().getId());
+
 				itemDto.setItemName(orderItem.getItemName());
+
 				itemDto.setUnitPrice(orderItem.getUnitPrice());
+
 				itemDto.setQuantity(orderItem.getQuantity());
+
 				itemDto.setSubtotal(orderItem.getSubtotal());
 
 				itemResponses.add(itemDto);
