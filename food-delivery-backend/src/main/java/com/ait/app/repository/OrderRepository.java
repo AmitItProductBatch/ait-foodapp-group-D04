@@ -1,3 +1,4 @@
+
 package com.ait.app.repository;
 
 import java.util.List;
@@ -9,4 +10,6 @@ import com.ait.app.model.Order;
 public interface OrderRepository extends JpaRepository<Order, Integer> {
 
 	List<Order> findByUserId(int userId);
+
+	long countByDeliveryPartnerIdAndStatusIn(Integer deliveryPartnerId, List<String> statuses);
 }
