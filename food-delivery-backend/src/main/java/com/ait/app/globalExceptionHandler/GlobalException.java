@@ -15,6 +15,7 @@ import com.ait.app.customExceptionHandler.CartException;
 import com.ait.app.customExceptionHandler.CartItemServiceException;
 import com.ait.app.customExceptionHandler.DeliveryRuleException;
 import com.ait.app.customExceptionHandler.OrderException;
+import com.ait.app.customExceptionHandler.PaymentException;
 import com.ait.app.customExceptionHandler.PriceCalculationException;
 import com.ait.app.customExceptionHandler.RestaurantException;
 import com.ait.app.customExceptionHandler.RoleException;
@@ -96,5 +97,14 @@ public class GlobalException {
 		error.put("errorMsg", e.getMessage());
 
 		return ResponseEntity.status(e.getStatus()).body(error);
+	}
+	
+	@ExceptionHandler(PaymentException.class)
+	public ResponseEntity handlePaymentException(PaymentException e) {
+		
+		Map error = new HashMap<>();
+		error.put("errormsg", e.getMsg());
+		
+		return ResponseEntity.status(e.getStatusCode()).body(error);
 	}
 }

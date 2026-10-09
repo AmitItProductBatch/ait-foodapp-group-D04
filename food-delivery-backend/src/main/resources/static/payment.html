@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Razorpay Payment</title>
+</head>
+
+<body>
+
+    <h2>Food Delivery Payment</h2>
+
+    <p id="orderText"></p>
+
+    <button id="payButton">Pay Now</button>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <script>
+
+        // ==========================================
+        // GET ORDER ID FROM URL
+        // Example:
+        // http://localhost:8084/payment.html?orderId=1
+        // ==========================================
+
+        const urlParams = new URLSearchParams(window.location.search);
+
+        const orderId = urlParams.get("orderId");
+
+        console.log("Order ID from URL:", orderId);
+
+        if (!orderId) {
+
+            alert("Order ID is missing from URL");
+
+        } else {
+
+            document.getElementById("orderText").innerText =
+                "Order ID: " + orderId;
+        }
+
+
+        // ==========================================
+        // PAY BUTTON
+        // ==========================================
+
+        document.getElementById("payButton").onclick = function () {
+
+            if (!orderId) {
+
+                alert("Order ID is missing");
+
+                return;
+            }
+
+            alert("Creating Razorpay payment...");
+
+
+            // ==========================================
+            // CREATE RAZORPAY ORDER
+            // ==========================================
+
+            fetch("/create-payment", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+
+                    orderId: parseInt(orderId),
+
+                    paymentMethod: "RAZORPAY"
+
+                })
+            })
+
+            .then(function (response) {
+
+                console.log(
+                    "Create Payment HTTP Status:",
+                    response.status
+                );
+
+                if (!response.ok) {
+
+                    return response.text().then(function (text) {
+
+                        throw new Error(
+                            "Create payment failed: " + text
+                        );
+
+                    });
+                }
+
+                return response.json();
+            })
+
+
+            .then(function (data) {
+
+                // ==========================================
+                // PRINT BACKEND RESPONSE
+                // ==========================================
+
+                console.log(
+                    "========== CREATE PAYMENT RESPONSE =========="
+                );
+
+                console.log(data);
+
+                console.log("Key ID:", data.keyId);
+
+                console.log(
+                    "Razorpay Order ID:",
+                    data.order_id
+                );
+
+                console.log(
+                    "Amount:",
+                    data.amount
+                );
+
+                console.log(
+                    "Currency:",
+                    data.currency
+                );
+
+                console.log(
+                    "Database Order ID:",
+                    data.orderId
+                );
+
+
+                // ==========================================
+                // CHECK KEY
+                // ==========================================
+
+                if (!data.keyId) {
+
+                    alert(
+                        "Razorpay Key ID is missing from backend response"
+                    );
+
+                    console.error(
+                        "keyId is missing:",
+                        data
+                    );
+
+                    return;
+                }
+
+
+                // ==========================================
+                // CHECK RAZORPAY ORDER ID
+                // ==========================================
+
+                if (!data.order_id) {
+
+                    alert(
+                        "Razorpay Order ID is missing"
+                    );
+
+                    console.error(
+                        "order_id is missing:",
+                        data
+                    );
+
+                    return;
+                }
+
+
+                // ==========================================
+                // CHECK AMOUNT
+                // ==========================================
+
+                if (!data.amount || data.amount <= 0) {
+
+                    alert(
+                        "Invalid payment amount"
+                    );
+
+                    console.error(
+                        "Invalid amount:",
+                        data.amount
+                    );
+
+                    return;
+                }
+
+
+                // ==========================================
+                // RAZORPAY OPTIONS
+                // ==========================================
+
+                var options = {
+
+                    key: data.keyId,
+
+                    amount: data.amount,
+
+                    currency: data.currency,
+
+                    name: "Food Delivery",
+
+                    description: "Food Order Payment",
+
+                    order_id: data.order_id,
+
+
+                    // ==========================================
+                    // PAYMENT SUCCESS HANDLER
+                    // ==========================================
+
+                    handler: function (response) {
+
+                        console.log(
+                            "========== FULL RAZORPAY RESPONSE =========="
+                        );
+
+                        console.log(response);
+
+
+                        console.log(
+                            "Payment ID:",
+                            response.razorpay_payment_id
+                        );
+
+
+                        console.log(
+                            "Razorpay Order ID:",
+                            response.razorpay_order_id
+                        );
+
+
+                        console.log(
+                            "Signature:",
+                            response.razorpay_signature
+                        );
+
+
+                        // ==========================================
+                        // CHECK PAYMENT ID
+                        // ==========================================
+
+                        if (!response.razorpay_payment_id) {
+
+                            alert(
+                                "Razorpay Payment ID is missing"
+                            );
+
+                            return;
+                        }
+
+
+                        // ==========================================
+                        // CHECK ORDER ID
+                        // ==========================================
+
+                        if (!response.razorpay_order_id) {
+
+                            alert(
+                                "Razorpay Order ID is missing"
+                            );
+
+                            return;
+                        }
+
+
+                        // ==========================================
+                        // CHECK SIGNATURE
+                        // ==========================================
+
+                        if (!response.razorpay_signature) {
+
+                            alert(
+                                "Razorpay Signature is missing"
+                            );
+
+                            return;
+                        }
+
+
+                        alert(
+                            "Payment completed. Verifying payment..."
+                        );
+
+
+                        // ==========================================
+                        // VERIFY PAYMENT
+                        // ==========================================
+
+                        verifyPayment(response);
+                    },
+
+
+                    // ==========================================
+                    // MODAL
+                    // ==========================================
+
+                    modal: {
+
+                        ondismiss: function () {
+
+                            console.log(
+                                "Razorpay payment window closed"
+                            );
+
+                        }
+                    },
+
+
+                    // ==========================================
+                    // THEME
+                    // ==========================================
+
+                    theme: {
+
+                        color: "#3399cc"
+                    }
+                };
+
+
+                console.log(
+                    "Opening Razorpay with options:",
+                    options
+                );
+
+
+                // ==========================================
+                // CREATE RAZORPAY OBJECT
+                // ==========================================
+
+                var razorpay = new Razorpay(options);
+
+
+                // ==========================================
+                // RAZORPAY ERROR
+                // ==========================================
+
+                razorpay.on(
+                    "payment.failed",
+                    function (response) {
+
+                        console.error(
+                            "========== RAZORPAY PAYMENT FAILED =========="
+                        );
+
+                        console.error(response);
+
+                        alert(
+                            "Payment failed: " +
+                            response.error.description
+                        );
+                    }
+                );
+
+
+                // ==========================================
+                // OPEN RAZORPAY
+                // ==========================================
+
+                razorpay.open();
+
+            })
+
+
+            // ==========================================
+            // CREATE PAYMENT ERROR
+            // ==========================================
+
+            .catch(function (error) {
+
+                console.error(
+                    "Create payment error:",
+                    error
+                );
+
+                alert(
+                    "Error: " +
+                    error.message
+                );
+            });
+        };
+
+
+        // ==================================================
+        // VERIFY PAYMENT FUNCTION
+        // ==================================================
+
+        function verifyPayment(response) {
+
+            console.log(
+                "========== SENDING PAYMENT FOR VERIFICATION =========="
+            );
+
+
+            console.log(
+                "Database Order ID:",
+                orderId
+            );
+
+
+            console.log(
+                "Razorpay Order ID:",
+                response.razorpay_order_id
+            );
+
+
+            console.log(
+                "Razorpay Payment ID:",
+                response.razorpay_payment_id
+            );
+
+
+            console.log(
+                "Razorpay Signature:",
+                response.razorpay_signature
+            );
+
+
+            // ==========================================
+            // SEND PAYMENT DETAILS TO BACKEND
+            // ==========================================
+
+            fetch("/verify-payment", {
+
+                method: "POST",
+
+                headers: {
+
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+
+                    orderId: parseInt(orderId),
+
+                    razorpayOrderId:
+                        response.razorpay_order_id,
+
+                    razorpaypaymentId:
+                        response.razorpay_payment_id,
+
+                    razorpaySignature:
+                        response.razorpay_signature
+                })
+            })
+
+
+            .then(function (response) {
+
+                console.log(
+                    "Verification HTTP Status:",
+                    response.status
+                );
+
+                return response.text();
+            })
+
+
+            .then(function (data) {
+
+                console.log(
+                    "========== VERIFICATION RESPONSE =========="
+                );
+
+                console.log(data);
+
+
+                if (data === "Payment Successful") {
+
+                    alert(
+                        "Payment Successful!"
+                    );
+
+                } else {
+
+                    alert(
+                        "Payment Verification Response: " +
+                        data
+                    );
+                }
+
+            })
+
+
+            .catch(function (error) {
+
+                console.error(
+                    "Verification error:",
+                    error
+                );
+
+                alert(
+                    "Payment verification failed: " +
+                    error.message
+                );
+            });
+        }
+
+    </script>
+
+</body>
+
+</html>

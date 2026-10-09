@@ -21,71 +21,90 @@ import com.ait.app.response.PriceCalculationResponse;
 @Service
 public class OrderTotalServiceImpl implements OrderTotalService {
 
-	@Autowired
-	CartItemRepository cartItemRepository;
+    @Autowired
+    private CartItemRepository cartItemRepository;
 
-	@Autowired
-	DeliveryFeeService deliveryFeeService;
+    @Autowired
+    private DeliveryFeeService deliveryFeeService;
 
-	@Override
-	public OrderTotalResponseDto calculateOrdertotal(OrderTotalRequestDto reqDto) {
+    @Override
+    public OrderTotalResponseDto calculateOrdertotal(OrderTotalRequestDto reqDto) {
+
         try {
-		List<CartItems> cartItems = cartItemRepository.findByCartId(reqDto.getCartId());
 
-		if (cartItems.isEmpty()) {
-			throw new PriceCalculationException("Cart is empty", HttpStatus.BAD_REQUEST);
-		}
-		
-		List<PriceCalculationResponse> items = new ArrayList<>();
-		
-		double itemSubtotal = 0;
-		
-		for (CartItems item : cartItems) {
+            List<CartItems> cartItems =
+                    cartItemRepository.findByCartId(reqDto.getCartId());
 
-			itemSubtotal = itemSubtotal + item.getSubtotal();
-			PriceCalculationResponse itemResponse = new PriceCalculationResponse();
+            if (cartItems == null || cartItems.isEmpty()) {
+                throw new PriceCalculationException(
+                        "Cart is empty",
+                        HttpStatus.BAD_REQUEST);
+            }
 
-			itemResponse.setItemId(item.getMenuItem().getId());
-			itemResponse.setItemName(item.getMenuItem().getName());
-			itemResponse.setUnitPrice(item.getUnitprice());
-			itemResponse.setQuantity(item.getQuantity());
-			itemResponse.setSubtotal(item.getSubtotal());
+            List<PriceCalculationResponse> items = new ArrayList<>();
 
-			items.add(itemResponse);
-		}
+            double itemSubtotal = 0;
 
-		double taxRate = 0.05;
-		double taxAmount = itemSubtotal * taxRate;
+            for (CartItems item : cartItems) {
 
-		DeliveryFeeRequestDto deliveryRequest = new DeliveryFeeRequestDto();
-		deliveryRequest.setCartId(reqDto.getCartId());
-		deliveryRequest.setRestaurantId(reqDto.getRestaurantId());
-		deliveryRequest.setAddressId(reqDto.getAddressId());
+                itemSubtotal = itemSubtotal + item.getSubtotal();
 
-		DeliveryFeeResponseDto deliveryResponse = deliveryFeeService.calculateDeliveryFeeByDistance(deliveryRequest);
-		double deliveryFee = deliveryResponse.getDeliveryFee();
+                PriceCalculationResponse itemResponse =
+                        new PriceCalculationResponse();
 
-		double discountAmount = 0;
+                itemResponse.setItemId(item.getMenuItem().getId());
+                itemResponse.setItemName(item.getMenuItem().getName());
+                itemResponse.setUnitPrice(item.getUnitprice());
+                itemResponse.setQuantity(item.getQuantity());
+                itemResponse.setSubtotal(item.getSubtotal());
 
-		double orderTotal = itemSubtotal + taxAmount + deliveryFee - discountAmount;
-		
-		OrderTotalResponseDto response = new OrderTotalResponseDto();
+                items.add(itemResponse);
+            }
 
-		response.setItems(items);
-		response.setItemSubtotal(itemSubtotal);
-		response.setTaxAmount(taxAmount);
-		response.setDeliveryFee(deliveryFee);
-		response.setDiscountAmount(discountAmount);
-		response.setOrderTotal(orderTotal);
+            double taxRate = 0.05;
+            double taxAmount = itemSubtotal * taxRate;
 
-		return response;
-        }catch (PriceCalculationException p) {
-            throw p;
+            DeliveryFeeRequestDto deliveryRequest =
+                    new DeliveryFeeRequestDto();
+
+            deliveryRequest.setCartId(reqDto.getCartId());
+            deliveryRequest.setRestaurantId(reqDto.getRestaurantId());
+            deliveryRequest.setAddressId(reqDto.getAddressId());
+
+            DeliveryFeeResponseDto deliveryResponse =
+                    deliveryFeeService.calculateDeliveryFeeByDistance(
+                            deliveryRequest);
+
+            double deliveryFee = deliveryResponse.getDeliveryFee();
+
+            double discountAmount = 0;
+
+            double orderTotal =
+                    itemSubtotal + taxAmount + deliveryFee - discountAmount;
+
+            OrderTotalResponseDto response =
+                    new OrderTotalResponseDto();
+
+            response.setItems(items);
+            response.setItemSubtotal(itemSubtotal);
+            response.setTaxAmount(taxAmount);
+            response.setDeliveryFee(deliveryFee);
+            response.setDiscountAmount(discountAmount);
+            response.setOrderTotal(orderTotal);
+
+            return response;
+
+        } catch (PriceCalculationException e) {
+
+            throw e;
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            throw new PriceCalculationException(
+                    "Unable to calculate order total: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        catch (Exception e) {
-			throw new PriceCalculationException("Unable to calculate order total", HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-		
-	}
-
+    }
 }
