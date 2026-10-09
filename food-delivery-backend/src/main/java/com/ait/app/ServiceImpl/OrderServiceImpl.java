@@ -139,7 +139,8 @@ public class OrderServiceImpl implements OrderService {
 		Address address = optionalAddress.get();
 
 		if (address.getUser() == null || address.getUser().getId() != user.getId()) {
-			logger.warn("Selected address does not belong to user. 
+			logger.warn("Selected address does not belong to user. userId: {}, addressId: {}", user.getId(),
+					orderDto.getAddressId());
 			throw new OrderException("Address does not belong to this user", HttpStatus.BAD_REQUEST);
 		}
 
