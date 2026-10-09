@@ -76,8 +76,8 @@ public class OrderServiceImpl implements OrderService {
 		
 		Optional<User> optionalUser = userRepository.findById(orderDto.getUserId());
 
-		if (optionalUser.isEmpty()) {
-
+		if (optionalUser.isEmpty()) {	
+		logger.warn("User not found for order placement. userId: {}", orderDto.getUserId());
 			throw new OrderException("User not found", HttpStatus.NOT_FOUND);
 		}
 
@@ -87,7 +87,7 @@ public class OrderServiceImpl implements OrderService {
 		Optional<Cart> optionalCart = cartRepository.findByUserId(user.getId());
 
 		if (optionalCart.isEmpty()) {
-
+			logger.warn("Cart not found for order placement. userId: {}", user.getId());
 			throw new OrderException("Cart not found", HttpStatus.NOT_FOUND);
 		}
 
@@ -97,7 +97,7 @@ public class OrderServiceImpl implements OrderService {
 		List<CartItems> cartItems = cartItemRepository.findByCartId(cart.getId());
 
 		if (cartItems == null || cartItems.isEmpty()) {
-
+			logger.warn("Cart is empty. Order cannot be placed. userId: {}", user.getId());
 			throw new OrderException("Cart is empty", HttpStatus.BAD_REQUEST);
 		}
 
@@ -105,26 +105,26 @@ public class OrderServiceImpl implements OrderService {
 		Restaurant restaurant = cart.getRestaurant();
 
 		if (restaurant == null) {
-
+			logger.error("Restaurant information is missing in cart. userId: {}", user.getId());
 			throw new OrderException("Restaurant not found in cart", HttpStatus.BAD_REQUEST);
 		}
 
 		Optional<Restaurant> optionalRestaurant = restaurantRepo.findById(restaurant.getId());
 
 		if (optionalRestaurant.isEmpty()) {
-
+			logger.error("Restaurant not found while placing order. restaurantId: {}", restaurant.getId());
 			throw new OrderException("Restaurant not found", HttpStatus.NOT_FOUND);
 		}
 
 		Restaurant restaurantObj = optionalRestaurant.get();
 
 		if (!restaurantObj.isActive()) {
-
+			logger.warn("Restaurant is closed. Order cannot be placed. restaurantId: {}", restaurantObj.getId());
 			throw new OrderException("Restaurant is closed", HttpStatus.BAD_REQUEST);
 		}
 
 		if (!restaurantObj.isApproved()) {
-
+			logger.warn("Restaurant is not approved. restaurantId: {}", restaurantObj.getId());
 			throw new OrderException("Restaurant is not approved", HttpStatus.BAD_REQUEST);
 		}
 
@@ -132,14 +132,14 @@ public class OrderServiceImpl implements OrderService {
 		Optional<Address> optionalAddress = addressRepository.findById(orderDto.getAddressId());
 
 		if (optionalAddress.isEmpty()) {
-
+			logger.warn("Delivery address not found. addressId: {}", orderDto.getAddressId());
 			throw new OrderException("Address not found", HttpStatus.NOT_FOUND);
 		}
 
 		Address address = optionalAddress.get();
 
 		if (address.getUser() == null || address.getUser().getId() != user.getId()) {
-
+			logger.warn("Selected address does not belong to user. 
 			throw new OrderException("Address does not belong to this user", HttpStatus.BAD_REQUEST);
 		}
 
@@ -149,37 +149,40 @@ public class OrderServiceImpl implements OrderService {
 		for (CartItems cartItem : cartItems) {
 
 			if (cartItem.getQuantity() <= 0) {
-
+				logger.warn("Invalid item quantity in cart. userId: {}", user.getId());
 				throw new OrderException("Quantity must be greater than zero", HttpStatus.BAD_REQUEST);
 			}
 
 			MenuItem menuItem = cartItem.getMenuItem();
 
 			if (menuItem == null) {
-
+				logger.error("Menu item information is missing in cart. userId: {}", user.getId());
 				throw new OrderException("Menu item not found in cart", HttpStatus.NOT_FOUND);
 			}
 
 			Optional<MenuItem> optionalMenuItem = menuItemRepository.findById(menuItem.getId());
 
 			if (optionalMenuItem.isEmpty()) {
-
+				logger.error("Menu item not found while placing order. menuItemId: {}", menuItem.getId());
 				throw new OrderException("Menu item not found: " + menuItem.getId(), HttpStatus.NOT_FOUND);
 			}
 
 			MenuItem menuItemObj = optionalMenuItem.get();
 
 			if (menuItemObj.getRestaurant() == null || menuItemObj.getRestaurant().getId() != restaurantObj.getId()) {
-
+				logger.warn("Menu item does not belong to selected restaurant. menuItemId: {}, restaurantId: {}",
+						menuItemObj.getId(), restaurantObj.getId());
 				throw new OrderException("Menu item does not belong to selected restaurant", HttpStatus.BAD_REQUEST);
 			}
 
 			if (!menuItemObj.isAvailability()) {
+				logger.warn("Menu item is unavailable. menuItemId: {}", menuItemObj.getId());
 
 				throw new OrderException("Menu item is unavailable: " + menuItemObj.getName(), HttpStatus.BAD_REQUEST);
 			}
 
 			if (!menuItemObj.isActive()) {
+				logger.warn("Menu item is inactive. menuItemId: {}", menuItemObj.getId());
 
 				throw new OrderException("Menu item is inactive: " + menuItemObj.getName(), HttpStatus.BAD_REQUEST);
 			}
@@ -292,6 +295,7 @@ public class OrderServiceImpl implements OrderService {
 		Optional<Order> optionalOrder = orderRepository.findById(orderId);
 
 		if (optionalOrder.isEmpty()) {
+			logger.warn("Order not found. orderId: {}", orderId);
 
 			throw new OrderException("Order not found", HttpStatus.NOT_FOUND);
 		}
