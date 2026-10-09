@@ -13,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import com.ait.app.customExceptionHandler.AddressException;
 import com.ait.app.customExceptionHandler.CartException;
 import com.ait.app.customExceptionHandler.CartItemServiceException;
+import com.ait.app.customExceptionHandler.DeliveryPartnerNotFoundException;
 import com.ait.app.customExceptionHandler.DeliveryRuleException;
 import com.ait.app.customExceptionHandler.OrderException;
 import com.ait.app.customExceptionHandler.PriceCalculationException;
@@ -96,5 +97,11 @@ public class GlobalException {
 		error.put("errorMsg", e.getMessage());
 
 		return ResponseEntity.status(e.getStatus()).body(error);
+	}
+	@ExceptionHandler(DeliveryPartnerNotFoundException.class)
+	ResponseEntity<String> handleDeliveryPartnerNotFoundException(
+			DeliveryPartnerNotFoundException deliveryPartnerNotFoundException) {
+		return new ResponseEntity<String>(deliveryPartnerNotFoundException.getErrorMessage(),
+				deliveryPartnerNotFoundException.getHttpStatus());
 	}
 }
