@@ -30,8 +30,9 @@ public class GeocodingServiceImpl implements GeocodingService {
     public double[] getCoordinates(String address) {
 
         try {
-
-            System.out.println("Geocoding address: " + address);
+        	
+    
+            System.out.println("Geocoding address....: " + address);
 
             String encodedAddress = URLEncoder.encode(address, StandardCharsets.UTF_8);
 
@@ -57,6 +58,7 @@ public class GeocodingServiceImpl implements GeocodingService {
 
             System.out.println("Nominatim response: " + response.body());
 
+            
             if (response.statusCode() != 200
                     || response.body().equals("[]")) {
 
