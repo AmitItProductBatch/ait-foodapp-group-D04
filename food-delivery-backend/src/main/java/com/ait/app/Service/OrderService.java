@@ -12,4 +12,5 @@ public interface OrderService {
 	ResponseEntity viewOrder(int orderId);
 
 	ResponseEntity updateOrderStatus(int orderId, OrderStatusUpdateDto statusUpdate);
+	void cancelOrder(int id);
 }
