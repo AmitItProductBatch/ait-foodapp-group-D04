@@ -14,6 +14,7 @@ import com.ait.app.customExceptionHandler.AddressException;
 import com.ait.app.customExceptionHandler.CartException;
 import com.ait.app.customExceptionHandler.CartItemServiceException;
 import com.ait.app.customExceptionHandler.DeliveryRuleException;
+import com.ait.app.customExceptionHandler.FeedbackException;
 import com.ait.app.customExceptionHandler.OrderException;
 import com.ait.app.customExceptionHandler.PaymentException;
 import com.ait.app.customExceptionHandler.PriceCalculationException;
@@ -106,5 +107,11 @@ public class GlobalException {
 		error.put("errormsg", e.getMsg());
 		
 		return ResponseEntity.status(e.getStatusCode()).body(error);
+	}
+	@ExceptionHandler(FeedbackException.class)
+	public ResponseEntity RatingServiceExceptionHamdler(FeedbackException fe) {
+		
+		return new ResponseEntity(fe.getMessage(),fe.getHttpStatus());
+		
 	}
 }
