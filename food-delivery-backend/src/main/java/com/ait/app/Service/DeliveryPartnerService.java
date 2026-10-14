@@ -10,4 +10,8 @@ public interface DeliveryPartnerService {
 	ResponseEntity register(DeliveryPartnerRegisterDto dto);
 
 	ResponseEntity updateAvailability(DeliveryPartnerAvailabilityDto dto);
+	
+    ResponseEntity<String> acceptOrder(int orderId, Integer deliveryPartnerId);
+	
+	ResponseEntity<String> rejectOrder(int orderId, Integer deliveryPartnerId);
 }
