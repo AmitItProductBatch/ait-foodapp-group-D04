@@ -29,6 +29,8 @@ public class Order {
 	private int restaurantId;
 
 	private Integer deliveryPartnerId;
+	
+	private String deliveryPartnerStatus = "PENDING";
 
 	@Column(nullable = false)
 	private String deliveryAddressSnapshot;
@@ -129,4 +131,14 @@ public class Order {
 	public void setOrderItems(List<OrderItem> orderItems) {
 		this.orderItems = orderItems;
 	}
+
+	public String getDeliveryPartnerStatus() {
+		return deliveryPartnerStatus;
+	}
+
+	public void setDeliveryPartnerStatus(String deliveryPartnerStatus) {
+		this.deliveryPartnerStatus = deliveryPartnerStatus;
+	}
+	
+	
 }
