@@ -1,6 +1,7 @@
 package com.ait.app.controller;
 
 import com.ait.app.Service.DeliveryPartnerService;
+import com.ait.app.requestBody.DeliveryOrderStatusdto;
 import com.ait.app.requestBody.DeliveryPartnerAvailabilityDto;
 import com.ait.app.requestBody.DeliveryPartnerRegisterDto;
 
@@ -43,6 +44,12 @@ public class DeliveryPartnerController {
 	public ResponseEntity<String> rejectOrder(@PathVariable int orderId, @PathVariable Integer deliveryPartnerId) {
 
 		return service.rejectOrder(orderId, deliveryPartnerId);
+	}
+	
+	@PatchMapping("{orderId}/status")
+	public ResponseEntity updateDeliveryOrderStatus(@PathVariable int orderId,@RequestBody DeliveryOrderStatusdto dto) {
+		
+		return service.updateOrderStatus(orderId,dto.getStatus());
 	}
 
 }
