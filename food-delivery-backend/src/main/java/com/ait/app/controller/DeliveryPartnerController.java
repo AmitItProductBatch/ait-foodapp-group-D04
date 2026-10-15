@@ -67,4 +67,18 @@ public class DeliveryPartnerController {
 
 		return service.updateAvailability(dto);
 	}
+
+	@PatchMapping("/{orderId}/{deliveryPartnerId}/accept")
+	public ResponseEntity<String> acceptOrder(@PathVariable int orderId, @PathVariable Integer deliveryPartnerId) {
+
+		return service.acceptOrder(orderId, deliveryPartnerId);
+
+	}
+
+	@PatchMapping("/{orderId}/{deliveryPartnerId}/reject")
+	public ResponseEntity<String> rejectOrder(@PathVariable int orderId, @PathVariable Integer deliveryPartnerId) {
+
+		return service.rejectOrder(orderId, deliveryPartnerId);
+	}
+
 }

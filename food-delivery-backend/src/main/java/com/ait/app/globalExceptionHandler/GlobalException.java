@@ -16,6 +16,7 @@ import com.ait.app.customExceptionHandler.CartItemServiceException;
 import com.ait.app.customExceptionHandler.DeliveryPartnerNotFoundException;
 import com.ait.app.customExceptionHandler.DeliveryRuleException;
 import com.ait.app.customExceptionHandler.OrderException;
+import com.ait.app.customExceptionHandler.PaymentException;
 import com.ait.app.customExceptionHandler.PriceCalculationException;
 import com.ait.app.customExceptionHandler.RestaurantException;
 import com.ait.app.customExceptionHandler.RoleException;
@@ -103,5 +104,13 @@ public class GlobalException {
 			DeliveryPartnerNotFoundException deliveryPartnerNotFoundException) {
 		return new ResponseEntity<String>(deliveryPartnerNotFoundException.getErrorMessage(),
 				deliveryPartnerNotFoundException.getHttpStatus());
+  }
+	@ExceptionHandler(PaymentException.class)
+	public ResponseEntity handlePaymentException(PaymentException e) {
+		
+		Map error = new HashMap<>();
+		error.put("errormsg", e.getMsg());
+		
+		return ResponseEntity.status(e.getStatusCode()).body(error);
 	}
 }

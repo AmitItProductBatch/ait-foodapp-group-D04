@@ -17,4 +17,8 @@ public interface DeliveryPartnerService {
     void deleteDeliveryPartner(int deliveryPartnerId);
     List<DeliveryPartnerResponseDto> getAllDeliveryPartner();
 	ResponseEntity updateAvailability(DeliveryPartnerAvailabilityDto dto);
+	
+    ResponseEntity<String> acceptOrder(int orderId, Integer deliveryPartnerId);
+	
+	ResponseEntity<String> rejectOrder(int orderId, Integer deliveryPartnerId);
 }

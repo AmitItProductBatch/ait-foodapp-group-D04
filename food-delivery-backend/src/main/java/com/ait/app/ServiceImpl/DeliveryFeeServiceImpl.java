@@ -64,9 +64,9 @@ public class DeliveryFeeServiceImpl implements DeliveryFeeService {
 		
 	    double[] restaurantCoordinates = geocodingService.getCoordinates(restaurantObj.getAddress());
 		
-	    String deliveryAddress = addressObj.getStreetAddress() + ", "
-	            + addressObj.getCity() + ", "
-	            + addressObj.getPostalCode();
+	    String deliveryAddress =addressObj.getCity() + ", "
+	            + addressObj.getState()+", India";
+	    
 	    double[] addressCoordinates = geocodingService.getCoordinates(deliveryAddress);
 	
 	   

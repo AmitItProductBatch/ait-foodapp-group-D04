@@ -25,6 +25,15 @@ public class Address {
 	private String city;
 	private String postalCode;
 	private String deliveryInstructions;
+	private String state;
+
+	public String getState() {
+		return state;
+	}
+
+	public void setState(String state) {
+		this.state = state;
+	}
 
 	@ManyToOne()
 	@JoinColumn(name = "user_id")

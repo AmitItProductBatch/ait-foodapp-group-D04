@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.ait.app.Service.OrderService;
 import com.ait.app.requestBody.OrderDto;
+import com.ait.app.requestBody.OrderStatusUpdateDto;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -24,5 +25,11 @@ public class OrderController {
 	public ResponseEntity<?> viewOrder(@PathVariable int orderId) {
 
 		return orderService.viewOrder(orderId);
+	}
+
+	@PutMapping("/{orderId}/status")
+	public ResponseEntity<?> updateOrderStatus(@PathVariable int orderId,
+			@RequestBody OrderStatusUpdateDto statusUpdate) {
+		return orderService.updateOrderStatus(orderId, statusUpdate);
 	}
 }

@@ -12,7 +12,9 @@ import org.springframework.stereotype.Service;
 
 import com.ait.app.Service.DeliveryPartnerService;
 import com.ait.app.customExceptionHandler.DeliveryPartnerNotFoundException;
+import com.ait.app.customExceptionHandler.OrderException;
 import com.ait.app.model.DeliveryPartner;
+import com.ait.app.model.Order;
 import com.ait.app.repository.DeliveryPartnerRepository;
 import com.ait.app.repository.OrderRepository;
 import com.ait.app.requestBody.DeliveryPartnerAvailabilityDto;
@@ -205,5 +207,70 @@ public class DeliveryPartnerServiceImpl implements DeliveryPartnerService {
 			deliveryPartnerList.add(deliveryPartnerResponseDto);
 		}
 		return deliveryPartnerList;
+  }
+  
+  @Override
+	public ResponseEntity<String> acceptOrder(int orderId, Integer deliveryPartnerId) {
+		try {
+			if (deliveryPartnerId == null) {
+				throw new OrderException("Delivery partner ID is required", HttpStatus.BAD_REQUEST);
+			}
+
+			Optional<Order> orderOptional = orderRepository.findById(orderId);
+
+			if (orderOptional.isEmpty()) {
+				throw new OrderException("Order not found", HttpStatus.NOT_FOUND);
+			}
+
+			Order order = orderOptional.get();
+
+			if (!"PENDING".equals(order.getDeliveryPartnerStatus())) {
+				throw new OrderException("Delivery request is already processed", HttpStatus.BAD_REQUEST);
+			}
+
+			order.setDeliveryPartnerId(deliveryPartnerId);
+			order.setDeliveryPartnerStatus("ACCEPTED");
+
+			orderRepository.save(order);
+
+			return ResponseEntity.ok("Delivery request accepted by delivery partner");
+		} catch (OrderException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new OrderException("Unexpected error while accepting order", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	public ResponseEntity<String> rejectOrder(int orderId, Integer deliveryPartnerId) {
+		try {
+			if (deliveryPartnerId == null) {
+				throw new OrderException("Delivery partner ID is required", HttpStatus.BAD_REQUEST);
+			}
+
+			Optional<Order> orderOptional = orderRepository.findById(orderId);
+
+			if (orderOptional.isEmpty()) {
+				throw new OrderException("Order not found", HttpStatus.NOT_FOUND);
+			}
+
+			Order order = orderOptional.get();
+
+			if (!"PENDING".equals(order.getDeliveryPartnerStatus())) {
+				throw new OrderException("Delivery request is already processed", HttpStatus.BAD_REQUEST);
+			}
+
+			order.setDeliveryPartnerId(deliveryPartnerId);
+			order.setDeliveryPartnerStatus("REJECTED");
+			order.setDeliveryPartnerId(null);
+
+			orderRepository.save(order);
+
+			return ResponseEntity.ok("Delivery request rejected by delivery partner");
+		} catch (OrderException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new OrderException("Unexpected error while rejecting order", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 }
