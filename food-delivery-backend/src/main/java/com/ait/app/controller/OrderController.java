@@ -1,6 +1,7 @@
 package com.ait.app.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,5 +32,12 @@ public class OrderController {
 	public ResponseEntity<?> updateOrderStatus(@PathVariable int orderId,
 			@RequestBody OrderStatusUpdateDto statusUpdate) {
 		return orderService.updateOrderStatus(orderId, statusUpdate);
+	}
+	@DeleteMapping("/{id}")
+	public ResponseEntity<String> cancelOrder(@PathVariable int id) {
+
+		orderService.cancelOrder(id);
+
+		return new ResponseEntity<>("Order cancelled successfully", HttpStatus.OK);
 	}
 }

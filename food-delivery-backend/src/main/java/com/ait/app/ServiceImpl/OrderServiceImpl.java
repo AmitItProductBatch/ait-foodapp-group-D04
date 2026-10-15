@@ -426,4 +426,25 @@ public class OrderServiceImpl implements OrderService {
 		}
 		return false;
 	}
+
+	@Override
+	public void cancelOrder(int id) {
+		if (id <= 0) {
+			throw new OrderException("Invalid Order Id", HttpStatus.BAD_REQUEST);
+		}
+
+		Optional<Order> orderOptional = orderRepository.findById(id);
+
+		if (orderOptional.isEmpty()) {
+			throw new OrderException("Order not found with id : " + id, HttpStatus.NOT_FOUND);
+		}
+
+		Order order = orderOptional.get();
+
+		order.setStatus("CANCELLED");
+
+		orderRepository.save(order);
+                //orderRepository.delete(order);
+		
+	}
 }
