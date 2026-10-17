@@ -21,4 +21,6 @@ public interface DeliveryPartnerService {
     ResponseEntity<String> acceptOrder(int orderId, Integer deliveryPartnerId);
 	
 	ResponseEntity<String> rejectOrder(int orderId, Integer deliveryPartnerId);
+	
+	ResponseEntity updateOrderStatus(int orderId,String status);
 }

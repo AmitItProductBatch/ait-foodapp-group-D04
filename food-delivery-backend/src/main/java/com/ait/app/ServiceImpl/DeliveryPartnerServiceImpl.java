@@ -230,6 +230,7 @@ public class DeliveryPartnerServiceImpl implements DeliveryPartnerService {
 
 			order.setDeliveryPartnerId(deliveryPartnerId);
 			order.setDeliveryPartnerStatus("ACCEPTED");
+			order.setStatus("ACCEPTED");
 
 			orderRepository.save(order);
 
@@ -272,5 +273,41 @@ public class DeliveryPartnerServiceImpl implements DeliveryPartnerService {
 		} catch (Exception e) {
 			throw new OrderException("Unexpected error while rejecting order", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	@Override
+	public ResponseEntity<String> updateOrderStatus(int orderId, String status) {
+
+	    Order order = orderRepository.getById(orderId);
+
+	    if (order == null) {
+	        throw new OrderException("Order not found", HttpStatus.NOT_FOUND);
+	    }
+
+	    if (status == null || status.trim().isEmpty()) {
+	        throw new OrderException("Status is required", HttpStatus.BAD_REQUEST);
+	    }
+
+	    status = status.trim().toUpperCase();
+
+	    String currentStatus = order.getStatus();
+
+	     if ("PLACED".equals(currentStatus) && "PICKED_UP".equals(status)) {
+
+	        order.setStatus("PICKED_UP");
+
+	    } else if ("PICKED_UP".equals(currentStatus) && "DELIVERED".equals(status)) {
+
+	        order.setStatus("DELIVERED");
+
+	    } else {
+	        throw new OrderException(
+	                "Invalid status transition from " + currentStatus + " to " + status,
+	                HttpStatus.BAD_REQUEST);
+	    }
+
+	    orderRepository.save(order);
+
+	    return ResponseEntity.ok("Order status updated to " + status);
 	}
 }
