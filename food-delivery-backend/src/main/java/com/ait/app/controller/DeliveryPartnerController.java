@@ -5,6 +5,8 @@ import com.ait.app.requestBody.DeliveryOrderStatusdto;
 import com.ait.app.requestBody.DeliveryPartnerAvailabilityDto;
 import com.ait.app.requestBody.DeliveryPartnerRegisterDto;
 import com.ait.app.requestBody.DeliveryPartnerRequestDto;
+import com.ait.app.response.DeliveryEarningsResponse;
+import com.ait.app.response.DeliveryHistoryResponse;
 import com.ait.app.response.DeliveryPartnerResponseDto;
 
 import java.util.List;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -86,6 +89,20 @@ public class DeliveryPartnerController {
 	public ResponseEntity updateDeliveryOrderStatus(@PathVariable int orderId,@RequestBody DeliveryOrderStatusdto dto) {
 		
 		return service.updateOrderStatus(orderId,dto.getStatus());
+	}
+
+	@GetMapping("/delivery-history")
+	public ResponseEntity<List<DeliveryHistoryResponse>> getDeliveryHistory(
+			@RequestParam("deliveryPartnerId") Integer deliveryPartnerId) {
+
+		return service.getDeliveryHistory(deliveryPartnerId);
+	}
+
+	@GetMapping("/earnings")
+	public ResponseEntity<DeliveryEarningsResponse> getEarnings(
+			@RequestParam("deliveryPartnerId") Integer deliveryPartnerId) {
+
+		return service.getEarnings(deliveryPartnerId);
 	}
 
 }

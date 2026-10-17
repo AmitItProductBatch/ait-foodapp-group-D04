@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import com.ait.app.requestBody.DeliveryPartnerAvailabilityDto;
 import com.ait.app.requestBody.DeliveryPartnerRegisterDto;
 import com.ait.app.requestBody.DeliveryPartnerRequestDto;
+import com.ait.app.response.DeliveryEarningsResponse;
+import com.ait.app.response.DeliveryHistoryResponse;
 import com.ait.app.response.DeliveryPartnerResponseDto;
 
 public interface DeliveryPartnerService {
@@ -23,4 +25,8 @@ public interface DeliveryPartnerService {
 	ResponseEntity<String> rejectOrder(int orderId, Integer deliveryPartnerId);
 	
 	ResponseEntity updateOrderStatus(int orderId,String status);
+
+	ResponseEntity<List<DeliveryHistoryResponse>> getDeliveryHistory(Integer deliveryPartnerId);
+
+	ResponseEntity<DeliveryEarningsResponse> getEarnings(Integer deliveryPartnerId);
 }

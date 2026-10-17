@@ -4,6 +4,10 @@ package com.ait.app.ServiceImpl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.TemporalAdjusters;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,14 +16,20 @@ import org.springframework.stereotype.Service;
 
 import com.ait.app.Service.DeliveryPartnerService;
 import com.ait.app.customExceptionHandler.DeliveryPartnerNotFoundException;
+import com.ait.app.customExceptionHandler.DeliveryRuleException;
 import com.ait.app.customExceptionHandler.OrderException;
 import com.ait.app.model.DeliveryPartner;
+import com.ait.app.model.DeliveryRules;
 import com.ait.app.model.Order;
+import com.ait.app.model.OrderItem;
 import com.ait.app.repository.DeliveryPartnerRepository;
+import com.ait.app.repository.DeliveryRuleRepo;
 import com.ait.app.repository.OrderRepository;
 import com.ait.app.requestBody.DeliveryPartnerAvailabilityDto;
 import com.ait.app.requestBody.DeliveryPartnerRegisterDto;
 import com.ait.app.requestBody.DeliveryPartnerRequestDto;
+import com.ait.app.response.DeliveryEarningsResponse;
+import com.ait.app.response.DeliveryHistoryResponse;
 import com.ait.app.response.DeliveryPartnerResponseDto;
 
 @Service
@@ -30,6 +40,9 @@ public class DeliveryPartnerServiceImpl implements DeliveryPartnerService {
 
 	@Autowired
 	OrderRepository orderRepository;
+
+	@Autowired
+	DeliveryRuleRepo deliveryRuleRepo;
 
 	@Override
 	public ResponseEntity register(DeliveryPartnerRegisterDto dto) {
@@ -309,5 +322,134 @@ public class DeliveryPartnerServiceImpl implements DeliveryPartnerService {
 	    orderRepository.save(order);
 
 	    return ResponseEntity.ok("Order status updated to " + status);
+	}
+
+	@Override
+	public ResponseEntity<List<DeliveryHistoryResponse>> getDeliveryHistory(Integer deliveryPartnerId) {
+
+		validateDeliveryPartner(deliveryPartnerId);
+
+		DeliveryRules rule = getActiveDeliveryRule();
+		List<Order> orders = orderRepository.findByDeliveryPartnerIdAndStatusOrderByUpdatedAtDesc(
+				deliveryPartnerId, "DELIVERED");
+		List<DeliveryHistoryResponse> responseList = new ArrayList<>();
+
+		for (Order order : orders) {
+			DeliveryHistoryResponse response = new DeliveryHistoryResponse();
+			response.setOrderId(order.getId());
+			response.setDeliveryDate(getDeliveryDate(order));
+			response.setEarnings(calculateEarnings(order, rule));
+			responseList.add(response);
+		}
+
+		return ResponseEntity.status(HttpStatus.OK).body(responseList);
+	}
+
+	@Override
+	public ResponseEntity<DeliveryEarningsResponse> getEarnings(Integer deliveryPartnerId) {
+
+		validateDeliveryPartner(deliveryPartnerId);
+
+		DeliveryRules rule = getActiveDeliveryRule();
+		List<Order> orders = orderRepository.findByDeliveryPartnerIdAndStatusOrderByUpdatedAtDesc(
+				deliveryPartnerId, "DELIVERED");
+
+		LocalDate today = LocalDate.now();
+		LocalDate weekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+		LocalDate monthStart = today.with(TemporalAdjusters.firstDayOfMonth());
+		LocalDateTime todayStart = today.atStartOfDay();
+		LocalDateTime tomorrowStart = today.plusDays(1).atStartOfDay();
+		LocalDateTime weekStartTime = weekStart.atStartOfDay();
+		LocalDateTime monthStartTime = monthStart.atStartOfDay();
+
+		double dailyEarnings = 0;
+		double weeklyEarnings = 0;
+		double monthlyEarnings = 0;
+		double totalEarnings = 0;
+
+		for (Order order : orders) {
+			double earnings = calculateEarnings(order, rule);
+			LocalDateTime deliveryDate = getDeliveryDate(order);
+
+			totalEarnings = totalEarnings + earnings;
+
+			if (deliveryDate != null && !deliveryDate.isBefore(todayStart)
+					&& deliveryDate.isBefore(tomorrowStart)) {
+				dailyEarnings = dailyEarnings + earnings;
+			}
+
+			if (deliveryDate != null && !deliveryDate.isBefore(weekStartTime)) {
+				weeklyEarnings = weeklyEarnings + earnings;
+			}
+
+			if (deliveryDate != null && !deliveryDate.isBefore(monthStartTime)) {
+				monthlyEarnings = monthlyEarnings + earnings;
+			}
+		}
+
+		DeliveryEarningsResponse response = new DeliveryEarningsResponse();
+		response.setDailyEarnings(dailyEarnings);
+		response.setWeeklyEarnings(weeklyEarnings);
+		response.setMonthlyEarnings(monthlyEarnings);
+		response.setTotalEarnings(totalEarnings);
+		response.setTotalCompletedDeliveries(orders.size());
+
+		return ResponseEntity.status(HttpStatus.OK).body(response);
+	}
+
+	private void validateDeliveryPartner(Integer deliveryPartnerId) {
+
+		if (deliveryPartnerId == null) {
+			throw new DeliveryPartnerNotFoundException("delivery partner id is required", HttpStatus.BAD_REQUEST);
+		}
+
+		if (!repository.existsById(deliveryPartnerId)) {
+			throw new DeliveryPartnerNotFoundException("delivery partner not found with id " + deliveryPartnerId,
+					HttpStatus.NOT_FOUND);
+		}
+	}
+
+	private DeliveryRules getActiveDeliveryRule() {
+
+		List<DeliveryRules> rules = deliveryRuleRepo.findByActive(true);
+
+		if (rules == null || rules.isEmpty()) {
+			throw new DeliveryRuleException("Delivery rule not found", HttpStatus.NOT_FOUND);
+		}
+
+		return rules.get(0);
+	}
+
+	private LocalDateTime getDeliveryDate(Order order) {
+
+		if (order.getUpdatedAt() != null) {
+			return order.getUpdatedAt();
+		}
+
+		return order.getCreatedAt();
+	}
+
+	private double calculateEarnings(Order order, DeliveryRules rule) {
+
+		if (order.getOrderItems() == null || order.getOrderItems().isEmpty()) {
+			return rule.getBaseFee();
+		}
+
+		double itemSubtotal = 0;
+
+		for (OrderItem item : order.getOrderItems()) {
+			if (item.getSubtotal() != null) {
+				itemSubtotal = itemSubtotal + item.getSubtotal().doubleValue();
+			}
+		}
+
+		double taxAmount = itemSubtotal * 0.05;
+		double deliveryPayment = order.getTotalAmount() - itemSubtotal - taxAmount;
+
+		if (deliveryPayment < rule.getBaseFee()) {
+			return rule.getBaseFee();
+		}
+
+		return deliveryPayment;
 	}
 }
