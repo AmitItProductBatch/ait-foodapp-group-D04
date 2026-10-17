@@ -30,7 +30,7 @@ public class FeedbackController {
 	}
 	
 	@PutMapping("/{feedbackId}")
-	public ResponseEntity putMethodName(@PathVariable int feedbackId, @RequestBody FeedbackUpdateDto updateDto) {
+	public ResponseEntity updateFeedback(@PathVariable int feedbackId, @RequestBody FeedbackUpdateDto updateDto) {
 		
 		
 		return feedbackService.updateFeedback(feedbackId, updateDto);
