@@ -136,42 +136,42 @@ public class CartServiceImpl implements CartService {
 		int restaurantId = dto.getRestaurantId();
 		int menuItemId = dto.getMenuItemId();
 		int quantity = dto.getQuantity();
-		System.out.println("1");
+		
 		Optional<User> userOptional = userRepository.findById(userId);
 
 		if (userOptional.isEmpty()) {
 			throw new CartException("User not found", HttpStatus.NOT_FOUND);
 		}
-		System.out.println("2");
+		
 		Optional<Restaurant> restaurantOptional = restaurantRepo.findById(restaurantId);
 
 		if (restaurantOptional.isEmpty()) {
 			throw new CartException("Restaurant not found", HttpStatus.NOT_FOUND);
 		}
-		System.out.println("3");
+		
 		Optional<MenuItem> menuItemOptional = menuItemRepository.findById(menuItemId);
 
 		if (menuItemOptional.isEmpty()) {
 			throw new CartException("Menu item not found", HttpStatus.NOT_FOUND);
 		}
-		System.out.println("4");
+		
 		User user = userOptional.get();
 		Restaurant restaurant = restaurantOptional.get();
 		MenuItem menuItem = menuItemOptional.get();
 
 		Cart cart = cartRepository.findByUserId(userId).get();
-		System.out.println("5");
+		
 		if (cart.getRestaurant().getId() != restaurantId) {
 			throw new CartException("Your cart already contains items from another restaurant. Clear your cart first.",
 					HttpStatus.CONFLICT);
 		}
-		System.out.println("6");
+		
 		double unitPrice = menuItem.getPrice();
 
 		Optional<CartItems> existingItemOptional = cartItemRepository.findByCartAndMenuItem(cart, menuItem);
 
 		CartItems cartItem;
-		System.out.println("7");
+		
 		if (existingItemOptional.isPresent()) {
 			cartItem=existingItemOptional.get();
 			cartItem.setQuantity(cartItem.getQuantity() + quantity);
@@ -183,7 +183,7 @@ public class CartServiceImpl implements CartService {
 			cartItem.setQuantity(quantity);
 			cartItem.setUnitprice(unitPrice);
 		}
-		System.out.println("9");
+		
 		cartItem.setSubtotal(cartItem.getUnitprice() * cartItem.getQuantity());
 
 		cartItemRepository.save(cartItem);
