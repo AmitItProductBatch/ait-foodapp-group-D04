@@ -15,9 +15,11 @@ import com.ait.app.customExceptionHandler.CartException;
 import com.ait.app.model.Cart;
 import com.ait.app.model.Restaurant;
 import com.ait.app.model.CartItems;
+import com.ait.app.model.MenuItem;
 import com.ait.app.model.User;
 import com.ait.app.repository.CartItemRepository;
 import com.ait.app.repository.CartRepository;
+import com.ait.app.repository.MenuItemRepository;
 import com.ait.app.repository.RestaurantRepo;
 import com.ait.app.repository.UserRepository;
 import com.ait.app.requestBody.CartRequestDto;
@@ -40,6 +42,9 @@ public class CartServiceImpl implements CartService {
 
 	@Autowired
 	CartItemRepository cartItemRepository;
+	
+	@Autowired
+	MenuItemRepository menuItemRepository;
 
 	@Override
 	public Cart createCart(int userId) {
@@ -125,48 +130,63 @@ public class CartServiceImpl implements CartService {
 	}
 
 	@Override
-	public void saveCart(CartRequestDto dto) {
+	public void addItemToCart(CartRequestDto dto) {
+		
 		int userId = dto.getUserId();
-		if (userId <= 0) {
+		int restaurantId = dto.getRestaurantId();
+		int menuItemId = dto.getMenuItemId();
+		int quantity = dto.getQuantity();
+		
+		Optional<User> userOptional = userRepository.findById(userId);
 
-			throw new CartException("Invalid user id", HttpStatus.BAD_REQUEST);
-		}
-
-		Optional<User> uo = userRepository.findById(userId);
-
-		if (uo.isEmpty()) {
-
+		if (userOptional.isEmpty()) {
 			throw new CartException("User not found", HttpStatus.NOT_FOUND);
 		}
+		
+		Optional<Restaurant> restaurantOptional = restaurantRepo.findById(restaurantId);
 
-		if (cartRepository.existsByUserId(userId)) {
-
-			throw new CartException("Cart already exists for this user", HttpStatus.CONFLICT);
+		if (restaurantOptional.isEmpty()) {
+			throw new CartException("Restaurant not found", HttpStatus.NOT_FOUND);
 		}
+		
+		Optional<MenuItem> menuItemOptional = menuItemRepository.findById(menuItemId);
 
-		long restaurentId = dto.getRestaurantId();
-
-		if (restaurentId <= 0) {
-
-			throw new CartException("Invalid restaurant id", HttpStatus.BAD_REQUEST);
+		if (menuItemOptional.isEmpty()) {
+			throw new CartException("Menu item not found", HttpStatus.NOT_FOUND);
 		}
+		
+		User user = userOptional.get();
+		Restaurant restaurant = restaurantOptional.get();
+		MenuItem menuItem = menuItemOptional.get();
 
-		Optional<Restaurant> ro = restaurantRepo.findById((int) restaurentId);// findById(restaurentId);
-
-		if (ro.isEmpty()) {
-
-			throw new CartException("Restaurant not Found", HttpStatus.NOT_FOUND);
+		Cart cart = cartRepository.findByUserId(userId).get();
+		
+		if (cart.getRestaurant().getId() != restaurantId) {
+			throw new CartException("Your cart already contains items from another restaurant. Clear your cart first.",
+					HttpStatus.CONFLICT);
 		}
+		
+		double unitPrice = menuItem.getPrice();
 
-		User user = uo.get();
-		Restaurant restaurant = ro.get();
+		Optional<CartItems> existingItemOptional = cartItemRepository.findByCartAndMenuItem(cart, menuItem);
 
-		Cart cart = new Cart();
+		CartItems cartItem;
+		
+		if (existingItemOptional.isPresent()) {
+			cartItem=existingItemOptional.get();
+			cartItem.setQuantity(cartItem.getQuantity() + quantity);
+			
+		} else {
+			cartItem = new CartItems();
+			cartItem.setCart(cart);
+			cartItem.setMenuItem(menuItem);
+			cartItem.setQuantity(quantity);
+			cartItem.setUnitprice(unitPrice);
+		}
+		
+		cartItem.setSubtotal(cartItem.getUnitprice() * cartItem.getQuantity());
 
-		cart.setUser(user);
-		cart.setRestaurant(restaurant);
-
-		cartRepository.save(cart);
+		cartItemRepository.save(cartItem);
 
 	}
 
