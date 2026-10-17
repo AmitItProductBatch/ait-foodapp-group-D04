@@ -13,8 +13,11 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import com.ait.app.customExceptionHandler.AddressException;
 import com.ait.app.customExceptionHandler.CartException;
 import com.ait.app.customExceptionHandler.CartItemServiceException;
+import com.ait.app.customExceptionHandler.DeliveryPartnerNotFoundException;
 import com.ait.app.customExceptionHandler.DeliveryRuleException;
+import com.ait.app.customExceptionHandler.FeedbackException;
 import com.ait.app.customExceptionHandler.OrderException;
+import com.ait.app.customExceptionHandler.PaymentException;
 import com.ait.app.customExceptionHandler.PriceCalculationException;
 import com.ait.app.customExceptionHandler.RestaurantException;
 import com.ait.app.customExceptionHandler.RoleException;
@@ -96,5 +99,25 @@ public class GlobalException {
 		error.put("errorMsg", e.getMessage());
 
 		return ResponseEntity.status(e.getStatus()).body(error);
+	}
+	@ExceptionHandler(DeliveryPartnerNotFoundException.class)
+	ResponseEntity<String> handleDeliveryPartnerNotFoundException(
+			DeliveryPartnerNotFoundException deliveryPartnerNotFoundException) {
+		return new ResponseEntity<String>(deliveryPartnerNotFoundException.getErrorMessage(),
+				deliveryPartnerNotFoundException.getHttpStatus());
+  }
+	@ExceptionHandler(PaymentException.class)
+	public ResponseEntity handlePaymentException(PaymentException e) {
+		
+		Map error = new HashMap<>();
+		error.put("errormsg", e.getMsg());
+		
+		return ResponseEntity.status(e.getStatusCode()).body(error);
+	}
+	@ExceptionHandler(FeedbackException.class)
+	public ResponseEntity RatingServiceExceptionHamdler(FeedbackException fe) {
+		
+		return new ResponseEntity(fe.getMessage(),fe.getHttpStatus());
+		
 	}
 }

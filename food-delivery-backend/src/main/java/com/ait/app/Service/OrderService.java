@@ -4,6 +4,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
 import com.ait.app.requestBody.OrderDto;
+import com.ait.app.requestBody.OrderStatusUpdateDto;
 
 public interface OrderService {
 

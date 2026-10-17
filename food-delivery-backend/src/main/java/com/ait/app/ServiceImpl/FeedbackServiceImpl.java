@@ -1,9 +1,13 @@
 package com.ait.app.ServiceImpl;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.ait.app.Service.FeedbackService;
+import com.ait.app.customExceptionHandler.FeedbackException;
 import com.ait.app.model.Feedback;
 import com.ait.app.repository.FeedbackRepository;
 import com.ait.app.requestBody.FeedbackDto;
@@ -35,5 +39,16 @@ public class FeedbackServiceImpl implements FeedbackService {
 		feedback.setComment(feedbackDto.getComment());
 
 		return feedbackRepository.save(feedback);
+	}
+
+	@Override
+	public void deleteFeedBack(int feedbackId) {
+		Optional<Feedback> optional = feedbackRepository.findById(feedbackId);
+		if (optional.isEmpty()) {
+			throw new FeedbackException("Feedback not found for id: " + feedbackId,HttpStatus.NOT_FOUND);
+		}
+		Feedback feedback = optional.get();
+
+		feedbackRepository.deleteById(feedback.getId());
 	}
 }

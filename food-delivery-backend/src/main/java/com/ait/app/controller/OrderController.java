@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.ait.app.Service.OrderService;
 import com.ait.app.requestBody.OrderDto;
+import com.ait.app.requestBody.OrderStatusUpdateDto;
 
 @RestController
 @RequestMapping("/api/orders")

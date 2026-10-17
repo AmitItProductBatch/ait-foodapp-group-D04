@@ -6,5 +6,5 @@ import com.ait.app.requestBody.FeedbackDto;
 public interface FeedbackService {
 
 	Feedback createFeedback(FeedbackDto feedbackDto);
-
+	void deleteFeedBack(int feedbackId);
 }
