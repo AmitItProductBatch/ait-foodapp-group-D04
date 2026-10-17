@@ -206,11 +206,6 @@ public class DeliveryPartnerServiceImpl implements DeliveryPartnerService {
 
 	    String currentStatus = order.getStatus();
 
-//	    if ("Placed".equals(currentStatus) && "ACCEPTED".equals(status)) {
-//
-//	        order.setStatus("ACCEPTED");
-//	        order.setDeliveryPartnerStatus("ACCEPTED");
-
 	     if ("PLACED".equals(currentStatus) && "PICKED_UP".equals(status)) {
 
 	        order.setStatus("PICKED_UP");
