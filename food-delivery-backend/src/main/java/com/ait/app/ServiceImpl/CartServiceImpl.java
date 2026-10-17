@@ -131,7 +131,7 @@ public class CartServiceImpl implements CartService {
 
 	@Override
 	public void addItemToCart(CartRequestDto dto) {
-		System.out.println("0");
+		
 		int userId = dto.getUserId();
 		int restaurantId = dto.getRestaurantId();
 		int menuItemId = dto.getMenuItemId();
