@@ -114,10 +114,13 @@ public class GlobalException {
 		
 		return ResponseEntity.status(e.getStatusCode()).body(error);
 	}
+	
 	@ExceptionHandler(FeedbackException.class)
-	public ResponseEntity RatingServiceExceptionHamdler(FeedbackException fe) {
+	public ResponseEntity handleFeedbackException(FeedbackException e) {
 		
-		return new ResponseEntity(fe.getMessage(),fe.getHttpStatus());
+		Map error = new HashMap<>();
+		error.put("errormsg", e.getMsg());
 		
+		return ResponseEntity.status(e.getStatus()).body(error);
 	}
 }

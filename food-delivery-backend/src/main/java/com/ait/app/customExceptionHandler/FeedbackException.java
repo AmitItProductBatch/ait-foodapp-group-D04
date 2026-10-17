@@ -1,26 +1,42 @@
 package com.ait.app.customExceptionHandler;
 
+import java.io.ObjectInputFilter.Status;
+
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 
 public class FeedbackException extends RuntimeException{
-	private String message;
-	private HttpStatus httpStatus;
 	
-	public FeedbackException(String message, HttpStatus httpStatus) {
+	private String msg;
+	private HttpStatus status;
+	
+	
+	public FeedbackException(String msg, HttpStatus status) {
 		super();
-		this.message = message;
-		this.httpStatus = httpStatus;
+		this.msg = msg;
+		this.status = status;
 	}
-	public String getMessage() {
-		return message;
+
+
+	public String getMsg() {
+		return msg;
 	}
-	public void setMessage(String message) {
-		this.message = message;
+
+
+	public void setMsg(String msg) {
+		this.msg = msg;
 	}
-	public HttpStatus getHttpStatus() {
-		return httpStatus;
+
+
+	public HttpStatusCode getStatus() {
+		return status;
 	}
-	public void setHttpStatus(HttpStatus httpStatus) {
-		this.httpStatus = httpStatus;
+
+
+	public void setStatus(HttpStatus status) {
+		this.status = status;
 	}
+	
+	
+
 }
