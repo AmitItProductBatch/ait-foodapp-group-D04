@@ -1,6 +1,7 @@
 package com.ait.app.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,9 +28,9 @@ public class OrderController {
 		return orderService.viewOrder(orderId);
 	}
 
-	@PutMapping("/{orderId}/status")
-	public ResponseEntity<?> updateOrderStatus(@PathVariable int orderId,
-			@RequestBody OrderStatusUpdateDto statusUpdate) {
-		return orderService.updateOrderStatus(orderId, statusUpdate);
+	@GetMapping("/user/{userId}")
+	public ResponseEntity getUserOrderHistory(@PathVariable int userId, Pageable pageable) {
+
+		return orderService.getUserOrderHistory(userId, pageable);
 	}
 }

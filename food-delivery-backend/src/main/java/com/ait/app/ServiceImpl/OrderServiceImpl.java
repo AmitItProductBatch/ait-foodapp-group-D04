@@ -9,7 +9,9 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -39,8 +41,7 @@ import com.ait.app.repository.RestaurantRepo;
 import com.ait.app.repository.UserRepository;
 import com.ait.app.requestBody.OrderDto;
 import com.ait.app.requestBody.OrderItemDto;
-import com.ait.app.requestBody.OrderStatusUpdateDto;
-import com.ait.app.requestBody.OrderTotalRequestDto;
+import com.ait.app.response.OrderHistoryResponse;
 import com.ait.app.response.OrderResponseDto;
 import com.ait.app.response.OrderTotalResponseDto;
 import com.ait.app.response.PriceCalculationResponse;
@@ -356,74 +357,27 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
-	@Transactional
-	public ResponseEntity updateOrderStatus(int orderId, OrderStatusUpdateDto statusUpdate) {
-		if (statusUpdate == null || statusUpdate.getStatus() == null) {
-			throw new OrderException("A target status is required", HttpStatus.BAD_REQUEST);
-		}
-		if (statusUpdate.getUserId() <= 0) {
-			throw new OrderException("A valid acting user is required", HttpStatus.UNAUTHORIZED);
+	public ResponseEntity getUserOrderHistory(int userId, Pageable pageable) {
+
+		Page<Order> orders = orderRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+
+		List<OrderHistoryResponse> responseList = new ArrayList<>();
+
+		for (Order order : orders.getContent()) {
+
+			OrderHistoryResponse dto = new OrderHistoryResponse();
+
+			dto.setOrderId(order.getId());
+			dto.setOrderStatus(order.getStatus());
+			dto.setPaymentStatus(order.getPaymentStatus());
+			dto.setTotalAmount(order.getTotalAmount());
+			dto.setCreatedAt(order.getCreatedAt());
+
+			responseList.add(dto);
 		}
 
-		Optional<Order> optionalOrder = orderRepository.findById(orderId);
-		if (optionalOrder.isEmpty()) {
-			throw new OrderException("Order not found", HttpStatus.NOT_FOUND);
-		}
-		Order order = optionalOrder.get();
+		Page<OrderHistoryResponse> response = new PageImpl(responseList,(org.springframework.data.domain.Pageable) pageable, orders.getTotalElements());
 
-		Optional<User> optionalActor = userRepository.findById(statusUpdate.getUserId());
-		if (optionalActor.isEmpty()) {
-			throw new OrderException("Acting user not found", HttpStatus.UNAUTHORIZED);
-		}
-		User actor = optionalActor.get();
-
-		if (!isPlatformAdmin(actor) && !ownsRestaurant(actor, order.getRestaurantId())) {
-			throw new OrderException("Only the order restaurant or a platform administrator may update status",
-					HttpStatus.FORBIDDEN);
-		}
-
-		OrderStatus current = parseStatus(order.getStatus());
-		OrderStatus target = statusUpdate.getStatus();
-		if (!current.canTransitionTo(target)) {
-			throw new OrderException("Invalid order status transition from " + current + " to " + target,
-					HttpStatus.BAD_REQUEST);
-		}
-
-		LocalDateTime changedAt = LocalDateTime.now();
-		order.setStatus(target.name());
-		orderRepository.save(order);
-		orderStatusHistoryRepository.save(new OrderStatusHistory(orderId, current, target,
-				actor.getId(), changedAt));
-		eventPublisher.publishEvent(new OrderStatusChangedEvent(orderId, order.getUserId(), current, target));
-		return ResponseEntity.ok(order);
-	}
-
-	private OrderStatus parseStatus(String status) {
-		try {
-			return OrderStatus.valueOf(status == null ? "" : status.trim().toUpperCase());
-		} catch (IllegalArgumentException ex) {
-			throw new OrderException("Order has an unknown status", HttpStatus.CONFLICT);
-		}
-	}
-
-	private boolean isPlatformAdmin(User actor) {
-		String role = actor.getRoleName();
-		return role != null && ("ADMIN".equalsIgnoreCase(role) || "PLATFORM_ADMIN".equalsIgnoreCase(role));
-	}
-
-	private boolean ownsRestaurant(User actor, int restaurantId) {
-		if (actor.getRestaurant() != null) {
-			for (Restaurant restaurant : actor.getRestaurant()) {
-				if (restaurant != null && restaurant.getId() == restaurantId) {
-					return true;
-				}
-			}
-		}
-		Optional<Restaurant> optionalRestaurant = restaurantRepo.findById(restaurantId);
-		if (optionalRestaurant.isPresent()) {
-			Restaurant restaurant = optionalRestaurant.get();
-			return restaurant.getUser() != null && restaurant.getUser().getId() == actor.getId();
-		}
-		return false;
+		return ResponseEntity.status(HttpStatus.OK).body(response);
 	}
 }
