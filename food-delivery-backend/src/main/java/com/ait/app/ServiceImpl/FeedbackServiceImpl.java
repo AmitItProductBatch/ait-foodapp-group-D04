@@ -94,8 +94,7 @@ public class FeedbackServiceImpl implements FeedbackService {
     }
 
     @Override
-    public ResponseEntity updateFeedback(
-            int feedbackId, FeedbackUpdateDto updateDto) {
+  public ResponseEntity<FeedbackResponse> updateFeedback(int feedbackId, FeedbackUpdateDto updateDto) {
 
         Optional<Feedback> feedbackOpt =
                 feedbackRepository.findById(feedbackId);

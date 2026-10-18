@@ -1,4 +1,3 @@
-
 package com.ait.app.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,26 +14,23 @@ import com.ait.app.Service.FeedbackService;
 import com.ait.app.model.Feedback;
 import com.ait.app.requestBody.FeedbackDto;
 import com.ait.app.requestBody.FeedbackUpdateDto;
+import com.ait.app.response.FeedbackResponse;
 
 @RestController
 @RequestMapping("/api/feedback")
 public class FeedbackController {
 
-	@Autowired
-	private FeedbackService feedbackService;
+    @Autowired
+    private FeedbackService feedbackService;
 
-	@PostMapping
-	public ResponseEntity<Feedback> createFeedback(@RequestBody FeedbackDto feedbackDto) {
+    @PostMapping
+    public ResponseEntity<Feedback> createFeedback(@RequestBody FeedbackDto feedbackDto) {
+        Feedback feedback = feedbackService.createFeedback(feedbackDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(feedback);
+    }
 
-		Feedback feedback = feedbackService.createFeedback(feedbackDto);
-
-		return ResponseEntity.status(HttpStatus.CREATED).body(feedback);
-	}
-
-	@PutMapping("/{feedbackId}")
-	public ResponseEntity updateFeedback(@PathVariable int feedbackId, @RequestBody FeedbackUpdateDto updateDto) {
-
-		return feedbackService.updateFeedback(feedbackId, updateDto);
-	}
-
+    @PutMapping("/{feedbackId}")
+    public ResponseEntity<FeedbackResponse> updateFeedback(@PathVariable int feedbackId, @RequestBody FeedbackUpdateDto updateDto) {
+        return feedbackService.updateFeedback(feedbackId, updateDto);
+    }
 }
