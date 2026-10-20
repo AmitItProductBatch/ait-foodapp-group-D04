@@ -1,4 +1,3 @@
-
 package com.ait.app.ServiceImpl;
 
 import java.util.ArrayList;
@@ -21,6 +20,11 @@ import com.ait.app.requestBody.DeliveryPartnerAvailabilityDto;
 import com.ait.app.requestBody.DeliveryPartnerRegisterDto;
 import com.ait.app.requestBody.DeliveryPartnerRequestDto;
 import com.ait.app.response.DeliveryPartnerResponseDto;
+import com.ait.app.model.Restaurant;
+import com.ait.app.model.User;
+import com.ait.app.repository.RestaurantRepo;
+import com.ait.app.repository.UserRepository;
+import com.ait.app.response.AssignedOrderResponseDto;
 
 @Service
 public class DeliveryPartnerServiceImpl implements DeliveryPartnerService {
@@ -30,6 +34,12 @@ public class DeliveryPartnerServiceImpl implements DeliveryPartnerService {
 
 	@Autowired
 	OrderRepository orderRepository;
+
+	@Autowired
+	RestaurantRepo restaurantRepo;
+
+	@Autowired
+	UserRepository userRepository;
 
 	@Override
 	public ResponseEntity register(DeliveryPartnerRegisterDto dto) {
@@ -72,7 +82,6 @@ public class DeliveryPartnerServiceImpl implements DeliveryPartnerService {
 
 		return ResponseEntity.status(HttpStatus.CREATED).body("Delivery partner registered successfully");
 	}
-
 	@Override
 	public ResponseEntity updateAvailability(DeliveryPartnerAvailabilityDto dto) {
 
@@ -147,7 +156,6 @@ public class DeliveryPartnerServiceImpl implements DeliveryPartnerService {
         
 		return deliveryPartnerResponseDto;
 	}
-
 	@Override
 	public DeliveryPartnerResponseDto updateDeliveryPartner(int deliveryPartnerId,
 			DeliveryPartnerRequestDto deliveryPartnerRequestDto) {
@@ -208,7 +216,6 @@ public class DeliveryPartnerServiceImpl implements DeliveryPartnerService {
 		}
 		return deliveryPartnerList;
   }
-  
   @Override
 	public ResponseEntity<String> acceptOrder(int orderId, Integer deliveryPartnerId) {
 		try {
@@ -274,7 +281,6 @@ public class DeliveryPartnerServiceImpl implements DeliveryPartnerService {
 			throw new OrderException("Unexpected error while rejecting order", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-
 	@Override
 	public ResponseEntity<String> updateOrderStatus(int orderId, String status) {
 
@@ -309,5 +315,58 @@ public class DeliveryPartnerServiceImpl implements DeliveryPartnerService {
 	    orderRepository.save(order);
 
 	    return ResponseEntity.ok("Order status updated to " + status);
+	}
+
+	@Override
+	public List<AssignedOrderResponseDto> getAssignedOrders(int deliveryPartnerId, String type) {
+
+		if (!repository.existsById(deliveryPartnerId)) {
+			throw new DeliveryPartnerNotFoundException("delivery partner not found", HttpStatus.NOT_FOUND);
+		}
+
+		List<Order> orders;
+
+		if (type == null || type.trim().isEmpty()) {
+			orders = orderRepository.findByDeliveryPartnerId(deliveryPartnerId);
+		} else if (type.trim().equalsIgnoreCase("active")) {
+			orders = orderRepository.findByDeliveryPartnerIdAndStatusNot(deliveryPartnerId, "DELIVERED");
+		} else if (type.trim().equalsIgnoreCase("completed")) {
+			orders = orderRepository.findByDeliveryPartnerIdAndStatus(deliveryPartnerId, "DELIVERED");
+		} else {
+			throw new OrderException("Type must be active or completed", HttpStatus.BAD_REQUEST);
+		}
+
+		List<AssignedOrderResponseDto> responseList = new ArrayList<>();
+
+		for (Order order : orders) {
+
+			AssignedOrderResponseDto dto = new AssignedOrderResponseDto();
+
+			dto.setOrderId(order.getId());
+			dto.setOrderStatus(order.getStatus());
+			dto.setDeliveryAddress(order.getDeliveryAddressSnapshot());
+
+			Optional<Restaurant> optionalRestaurant = restaurantRepo.findById(order.getRestaurantId());
+
+			if (optionalRestaurant.isPresent()) {
+				dto.setRestaurantName(optionalRestaurant.get().getName());
+				dto.setPickupAddress(optionalRestaurant.get().getAddress());
+			}
+
+			// customer contact is shown only while the order is active
+			if (!"DELIVERED".equals(order.getStatus())) {
+
+				Optional<User> optionalUser = userRepository.findById(order.getUserId());
+
+				if (optionalUser.isPresent()) {
+					dto.setCustomerName(optionalUser.get().getName());
+					dto.setCustomerMobile(optionalUser.get().getMobno());
+				}
+			}
+
+			responseList.add(dto);
+		}
+
+		return responseList;
 	}
 }
