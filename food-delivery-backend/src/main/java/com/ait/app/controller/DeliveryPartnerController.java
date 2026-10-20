@@ -5,6 +5,7 @@ import com.ait.app.requestBody.DeliveryOrderStatusdto;
 import com.ait.app.requestBody.DeliveryPartnerAvailabilityDto;
 import com.ait.app.requestBody.DeliveryPartnerRegisterDto;
 import com.ait.app.requestBody.DeliveryPartnerRequestDto;
+import com.ait.app.response.AssignedOrderResponseDto;
 import com.ait.app.response.DeliveryPartnerResponseDto;
 
 import java.util.List;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -86,6 +88,15 @@ public class DeliveryPartnerController {
 	public ResponseEntity updateDeliveryOrderStatus(@PathVariable int orderId,@RequestBody DeliveryOrderStatusdto dto) {
 		
 		return service.updateOrderStatus(orderId,dto.getStatus());
+	}
+
+	@GetMapping("/orders")
+	public ResponseEntity<List<AssignedOrderResponseDto>> getAssignedOrders(@RequestParam int deliveryPartnerId,
+			@RequestParam(required = false) String type) {
+
+		List<AssignedOrderResponseDto> orders = service.getAssignedOrders(deliveryPartnerId, type);
+
+		return new ResponseEntity<>(orders, HttpStatus.OK);
 	}
 
 }

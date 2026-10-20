@@ -16,4 +16,9 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 	long countByDeliveryPartnerIdAndStatusIn(Integer deliveryPartnerId, List<String> statuses);
 
 	Page<Order> findByUserIdOrderByCreatedAtDesc(int userId, Pageable pageable);
+	List<Order> findByDeliveryPartnerId(Integer deliveryPartnerId);
+
+	List<Order> findByDeliveryPartnerIdAndStatus(Integer deliveryPartnerId, String status);
+
+	List<Order> findByDeliveryPartnerIdAndStatusNot(Integer deliveryPartnerId, String status);
 }
