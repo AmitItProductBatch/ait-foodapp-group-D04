@@ -12,7 +12,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.ait.app.Service.RestaurantService;
 import com.ait.app.customExceptionHandler.RestaurantException;
 import com.ait.app.model.Cuisine;
@@ -32,6 +33,9 @@ public class RestaurantServiceImpl implements RestaurantService {
 
 	@Autowired
 	RestaurantRepo restaurantrepo;
+	
+	private static final Logger logger =
+	        LoggerFactory.getLogger(RestaurantServiceImpl.class);
 
 	@Autowired
 	UserRepository userrepo;
@@ -39,13 +43,19 @@ public class RestaurantServiceImpl implements RestaurantService {
 	@Override
 	public ResponseEntity addRestaurant(RestaurantDto restaurantdto) {
 
+		logger.info("Starting addRestaurant method");
+
 		if (restaurantdto.getName() == null || restaurantdto.getName().trim().isEmpty()
 				|| restaurantdto.getAddress() == null || restaurantdto.getAddress().trim().isEmpty()
 				|| restaurantdto.getContactNo() == null || restaurantdto.getContactNo().trim().isEmpty()) {
 
+			logger.warn("All fields are required");
 			throw new RestaurantException("All fields are required", HttpStatus.BAD_REQUEST);
 		}
+
 		try {
+			logger.info("Fetching user with ID: {}", restaurantdto.getUserId());
+
 			User user = userrepo.findById(restaurantdto.getUserId()).get();
 
 			Restaurant restaurant = new Restaurant();
@@ -62,6 +72,8 @@ public class RestaurantServiceImpl implements RestaurantService {
 
 			if (cuisineList != null) {
 
+				logger.info("Adding {} cuisines to restaurant", cuisineList.size());
+
 				for (Cuisine cuisine : cuisineList) {
 
 					cuisine.setRestaurant(restaurant);
@@ -72,6 +84,8 @@ public class RestaurantServiceImpl implements RestaurantService {
 
 			Restaurant res = restaurantrepo.save(restaurant);
 
+			logger.info("Restaurant saved successfully");
+
 			Map data = new HashMap<>();
 			data.put("message", "Restaurant Saved Succesfully");
 			data.put("restaurant", res);
@@ -79,6 +93,8 @@ public class RestaurantServiceImpl implements RestaurantService {
 			return ResponseEntity.status(HttpStatus.ACCEPTED).body(data);
 
 		} catch (Exception e) {
+
+			logger.error("Failed to save restaurant", e);
 
 			throw new RestaurantException("Failed to save Restaurant", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
