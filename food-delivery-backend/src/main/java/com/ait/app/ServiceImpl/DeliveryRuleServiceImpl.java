@@ -2,6 +2,8 @@ package com.ait.app.ServiceImpl;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,43 +22,54 @@ public class DeliveryRuleServiceImpl implements DeliveryRuleService{
 	@Autowired
 	DeliveryRuleRepo deliveryrulerepo;
 	
+	private static final Logger logger = LoggerFactory.getLogger(DeliveryRuleServiceImpl.class);
+	
+
 	@Override
 	public ResponseEntity updateDeliveryRules(DeliveryRuleDto dto) {
-		
-		if (dto.getBaseFee() <= 0 ||
-	            dto.getPerKmRate() <= 0 ||
-	            dto.getMaxDeliveryRadius() <= 0 ||
-	            dto.getFreeDeliveryThreshold() <= 0) {
-			throw new DeliveryRuleException("All delivery pricing values must be positive",HttpStatus.BAD_REQUEST);
+
+		logger.info("Starting updateDeliveryRules method");
+
+		if (dto.getBaseFee() <= 0 || dto.getPerKmRate() <= 0 || dto.getMaxDeliveryRadius() <= 0
+				|| dto.getFreeDeliveryThreshold() <= 0) {
+
+			logger.warn("Invalid delivery pricing values provided");
+			throw new DeliveryRuleException("All delivery pricing values must be positive", HttpStatus.BAD_REQUEST);
 		}
-		
+
+		logger.info("Fetching active delivery rules");
+
 		List<DeliveryRules> rules = deliveryrulerepo.findByActive(true);
-		
+
 		DeliveryRules rule;
-		
-		if(rules.isEmpty()) {
-			
+
+		if (rules.isEmpty()) {
+
+			logger.info("No active delivery rules found. Creating new rules");
+
 			rule = new DeliveryRules();
-			
+
 			rule.setCreatedAt(LocalDateTime.now());
-		}
-		else {
+		} else {
+			logger.info("Existing active delivery rules found. Updating the first rule");
+
 			rule = rules.get(0);
 		}
-		
-		 rule.setBaseFee(dto.getBaseFee());
-	        rule.setPerKmRate(dto.getPerKmRate());
-	        rule.setMaxDeliveryRadius(dto.getMaxDeliveryRadius());
-	        rule.setFreeDeliveryThreshold(
-	                dto.getFreeDeliveryThreshold());
-	        
-	        rule.setActive(true);
-	        
-	        rule.setUpdatedAt(LocalDateTime.now());
-	        
-	        deliveryrulerepo.save(rule);
-	        return new ResponseEntity(dto, HttpStatus.OK);
-		
+
+		rule.setBaseFee(dto.getBaseFee());
+		rule.setPerKmRate(dto.getPerKmRate());
+		rule.setMaxDeliveryRadius(dto.getMaxDeliveryRadius());
+		rule.setFreeDeliveryThreshold(dto.getFreeDeliveryThreshold());
+
+		rule.setActive(true);
+
+		rule.setUpdatedAt(LocalDateTime.now());
+
+		deliveryrulerepo.save(rule);
+
+		logger.info("Delivery rules saved successfully");
+
+		return new ResponseEntity(dto, HttpStatus.OK);
 	}
 
 }

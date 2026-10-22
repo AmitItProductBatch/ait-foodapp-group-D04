@@ -6,6 +6,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,6 +33,8 @@ public class MenuItemServiceImpl implements MenuItemService {
 
 	@Autowired
 	MenuItemRepository menuItemRepository;
+	
+	private static final Logger logger = LoggerFactory.getLogger(MenuItemServiceImpl.class);
 
 	@Autowired
 	RestaurantRepo restaurantRepo;
@@ -131,12 +135,15 @@ public class MenuItemServiceImpl implements MenuItemService {
 		return ResponseEntity.status(HttpStatus.OK).body(updatedItem);
 	}
 
-    @Override
+	@Override
 	public ResponseEntity deleteMenuItem(int itemId, int userId) {
+
+		logger.info("Starting deleteMenuItem method for itemId: {}", itemId);
 
 		Optional<MenuItem> optional = menuItemRepository.findById(itemId);
 
 		if (optional.isEmpty()) {
+			logger.warn("Menu item not found with ID: {}", itemId);
 			throw new RestaurantException("Menu item not found", HttpStatus.NOT_FOUND);
 		}
 
@@ -145,11 +152,14 @@ public class MenuItemServiceImpl implements MenuItemService {
 		Restaurant restaurant = item.getRestaurant();
 
 		if (restaurant.getUser().getId() != userId) {
+			logger.warn("User {} is not authorized to delete menu item {}", userId, itemId);
 			throw new RestaurantException("You are not authorized to delete this item", HttpStatus.UNAUTHORIZED);
 		}
 
 		item.setActive(false);
 		menuItemRepository.save(item);
+
+		logger.info("Menu item deactivated successfully with ID: {}", itemId);
 
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}

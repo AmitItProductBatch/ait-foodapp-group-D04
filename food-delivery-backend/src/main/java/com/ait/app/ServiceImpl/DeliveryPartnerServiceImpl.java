@@ -4,6 +4,8 @@ package com.ait.app.ServiceImpl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,6 +29,9 @@ public class DeliveryPartnerServiceImpl implements DeliveryPartnerService {
 
 	@Autowired
 	DeliveryPartnerRepository repository;
+	
+	private static final Logger logger =
+	        LoggerFactory.getLogger(DeliveryPartnerServiceImpl.class);
 
 	@Autowired
 	OrderRepository orderRepository;
@@ -275,39 +280,50 @@ public class DeliveryPartnerServiceImpl implements DeliveryPartnerService {
 		}
 	}
 
+
 	@Override
 	public ResponseEntity<String> updateOrderStatus(int orderId, String status) {
 
-	    Order order = orderRepository.getById(orderId);
+		logger.info("Starting updateOrderStatus for order ID: {}", orderId);
 
-	    if (order == null) {
-	        throw new OrderException("Order not found", HttpStatus.NOT_FOUND);
-	    }
+		Order order = orderRepository.getById(orderId);
 
-	    if (status == null || status.trim().isEmpty()) {
-	        throw new OrderException("Status is required", HttpStatus.BAD_REQUEST);
-	    }
+		if (order == null) {
+			logger.warn("Order not found with ID: {}", orderId);
+			throw new OrderException("Order not found", HttpStatus.NOT_FOUND);
+		}
 
-	    status = status.trim().toUpperCase();
+		if (status == null || status.trim().isEmpty()) {
+			logger.warn("Status is missing for order ID: {}", orderId);
+			throw new OrderException("Status is required", HttpStatus.BAD_REQUEST);
+		}
 
-	    String currentStatus = order.getStatus();
+		status = status.trim().toUpperCase();
 
-	     if ("PLACED".equals(currentStatus) && "PICKED_UP".equals(status)) {
+		String currentStatus = order.getStatus();
 
-	        order.setStatus("PICKED_UP");
+		logger.info("Updating order ID: {} from status {} to {}", orderId, currentStatus, status);
 
-	    } else if ("PICKED_UP".equals(currentStatus) && "DELIVERED".equals(status)) {
+		if ("PLACED".equals(currentStatus) && "PICKED_UP".equals(status)) {
 
-	        order.setStatus("DELIVERED");
+			order.setStatus("PICKED_UP");
 
-	    } else {
-	        throw new OrderException(
-	                "Invalid status transition from " + currentStatus + " to " + status,
-	                HttpStatus.BAD_REQUEST);
-	    }
+		} else if ("PICKED_UP".equals(currentStatus) && "DELIVERED".equals(status)) {
 
-	    orderRepository.save(order);
+			order.setStatus("DELIVERED");
 
-	    return ResponseEntity.ok("Order status updated to " + status);
+		} else {
+			logger.warn("Invalid status transition for order ID: {} from {} to {}", orderId, currentStatus, status);
+
+			throw new OrderException("Invalid status transition from " + currentStatus + " to " + status,
+					HttpStatus.BAD_REQUEST);
+		}
+
+		orderRepository.save(order);
+
+		logger.info("Order ID: {} status updated successfully to {}", orderId, status);
+
+		return ResponseEntity.ok("Order status updated to " + status);
 	}
+
 }

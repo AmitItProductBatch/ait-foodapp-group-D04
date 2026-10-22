@@ -1,6 +1,9 @@
+
 package com.ait.app.ServiceImpl;
 
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -20,19 +23,22 @@ import com.razorpay.Utils;
 @Service
 public class PaymentServiceImpl implements PaymentService {
 
+    private static final Logger logger =
+            LoggerFactory.getLogger(PaymentServiceImpl.class);
+
     private final OrderController orderController;
 
-	@Autowired
-	OrderRepository orderrepo;
+    @Autowired
+    OrderRepository orderrepo;
 
-	@Autowired
-	RazorpayClient razorpayClient;
+    @Autowired
+    RazorpayClient razorpayClient;
 
-	@Value("${razorpay.key.id}")
-	private String keyId;
+    @Value("${razorpay.key.id}")
+    private String keyId;
 
-	@Value("${razorpay.key.secret}")
-	private String keySecret;
+    @Value("${razorpay.key.secret}")
+    private String keySecret;
 
     PaymentServiceImpl(OrderController orderController) {
         this.orderController = orderController;
@@ -41,23 +47,33 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public ResponseEntity<String> createPayment(PaymentDto dto) {
 
-        System.out.println("payment service call");
+        logger.info("Starting createPayment method for order ID: {}",
+                dto.getOrderId());
 
         Order order = orderrepo.getById(dto.getOrderId());
 
         if (order == null) {
+            logger.warn("Order not found with ID: {}", dto.getOrderId());
+
             throw new PaymentException(
                     "Order not found",
                     HttpStatus.NOT_FOUND);
         }
-        
-        if(order.getStatus().equals("Confirmed")) {
-        	
-        	throw new PaymentException("Order is already Confirmed ", HttpStatus.BAD_REQUEST);
+
+        if (order.getStatus().equals("Confirmed")) {
+
+            logger.warn("Order {} is already confirmed", order.getId());
+
+            throw new PaymentException(
+                    "Order is already Confirmed ",
+                    HttpStatus.BAD_REQUEST);
         }
 
-//        String stat="Placed";
         if (!"Placed".equalsIgnoreCase(order.getStatus())) {
+
+            logger.warn("Order {} is not placed. Current status: {}",
+                    order.getId(), order.getStatus());
+
             throw new PaymentException(
                     "Order is not placed",
                     HttpStatus.BAD_REQUEST);
@@ -67,6 +83,10 @@ public class PaymentServiceImpl implements PaymentService {
         dto.setAmount(order.getTotalAmount());
 
         if (dto.getAmount() <= 0) {
+
+            logger.warn("Invalid payment amount for order ID: {}",
+                    order.getId());
+
             throw new PaymentException(
                     "Invalid Payment amount",
                     HttpStatus.BAD_REQUEST);
@@ -76,12 +96,19 @@ public class PaymentServiceImpl implements PaymentService {
                 (int) Math.round(dto.getAmount() * 100);
 
         if (amount < 100) {
+
+            logger.warn("Payment amount is below the minimum for order ID: {}",
+                    order.getId());
+
             throw new PaymentException(
                     "Amount must be at least 100",
                     HttpStatus.BAD_REQUEST);
         }
 
         try {
+
+            logger.info("Creating Razorpay order for order ID: {}",
+                    order.getId());
 
             JSONObject option = new JSONObject();
 
@@ -97,6 +124,9 @@ public class PaymentServiceImpl implements PaymentService {
             String razorpayOrderId =
                     razorpayOrder.get("id").toString();
 
+            logger.info("Razorpay order created successfully for order ID: {}",
+                    order.getId());
+
             JSONObject response = new JSONObject();
 
             response.put("keyId", keyId);
@@ -110,92 +140,124 @@ public class PaymentServiceImpl implements PaymentService {
 
         } catch (Exception e) {
 
+            logger.error("Failed to create Razorpay payment for order ID: {}",
+                    order.getId(), e);
+
             throw new PaymentException(
                     "Unable to create RazorPay payment",
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-	@Override
-	public ResponseEntity verifyPayment(PaymentVerifyDto dto) {
+    @Override
+    public ResponseEntity verifyPayment(PaymentVerifyDto dto) {
 
-		Order order = orderrepo.getById(dto.getOrderId());
-		System.out.println(dto.getRazorpaypaymentId());
+        logger.info("Starting verifyPayment method for order ID: {}",
+                dto.getOrderId());
 
-		if (order == null) {
-			throw new PaymentException("Order not found", HttpStatus.NOT_FOUND);
-		}
+        Order order = orderrepo.getById(dto.getOrderId());
 
-		if (!"Placed".equalsIgnoreCase(order.getStatus())) {
-			throw new PaymentException("Order is not available for Payment", HttpStatus.BAD_REQUEST);
+        if (order == null) {
 
-		}
+            logger.warn("Order not found with ID: {}", dto.getOrderId());
 
-		if (dto.getRazorpayOrderId() == null ) {
+            throw new PaymentException(
+                    "Order not found",
+                    HttpStatus.NOT_FOUND);
+        }
 
-			throw new PaymentException("RazorpayOrderId details are missing", HttpStatus.BAD_REQUEST);
+        if (!"Placed".equalsIgnoreCase(order.getStatus())) {
 
-		}
-		if (dto.getRazorpaypaymentId() == null) {
+            logger.warn("Order {} is not available for payment. Current status: {}",
+                    order.getId(), order.getStatus());
 
-			throw new PaymentException("RazorpaypaymentId details are missing", HttpStatus.BAD_REQUEST);
+            throw new PaymentException(
+                    "Order is not available for Payment",
+                    HttpStatus.BAD_REQUEST);
+        }
 
-		}
-		if (dto.getRazorpaySignature() == null) {
+        if (dto.getRazorpayOrderId() == null) {
 
-			throw new PaymentException("RazorpaySignature details are missing", HttpStatus.BAD_REQUEST);
+            logger.warn("Razorpay order ID is missing");
 
-		}
+            throw new PaymentException(
+                    "RazorpayOrderId details are missing",
+                    HttpStatus.BAD_REQUEST);
+        }
 
-		try {
-			
-			    String razorpayOrderId = dto.getRazorpayOrderId();
-			    String razorpayPaymentId = dto.getRazorpaypaymentId();
-			    String razorpaySignature = dto.getRazorpaySignature();
+        if (dto.getRazorpaypaymentId() == null) {
 
-			    System.out.println("Order ID = " + razorpayOrderId);
-			    System.out.println("Payment ID = " + razorpayPaymentId);
-			    System.out.println("Signature = " + razorpaySignature);
+            logger.warn("Razorpay payment ID is missing");
 
+            throw new PaymentException(
+                    "RazorpaypaymentId details are missing",
+                    HttpStatus.BAD_REQUEST);
+        }
 
-			    JSONObject payment = new JSONObject();
+        if (dto.getRazorpaySignature() == null) {
 
-			    payment.put("razorpay_order_id", dto.getRazorpayOrderId());
-			    payment.put("razorpay_payment_id", dto.getRazorpaypaymentId());
-			    payment.put("razorpay_signature", dto.getRazorpaySignature());
+            logger.warn("Razorpay signature is missing");
 
-			    System.out.println("JSON OBJECT = " + payment.toString());
-			    System.out.println("HAS ORDER ID = " + payment.has("razorpay_order_id"));
+            throw new PaymentException(
+                    "RazorpaySignature details are missing",
+                    HttpStatus.BAD_REQUEST);
+        }
 
-			    boolean verified =
-			            Utils.verifyPaymentSignature(payment, keySecret);
+        try {
 
-			if (!verified) {
-				order.setPaymentStatus("Failed");
+            String razorpayOrderId = dto.getRazorpayOrderId();
+            String razorpayPaymentId = dto.getRazorpaypaymentId();
+            String razorpaySignature = dto.getRazorpaySignature();
 
-				orderrepo.save(order);
+            logger.info("Received Razorpay payment details for order ID: {}",
+                    order.getId());
 
-				throw new PaymentException("PAyment verification failed 1", HttpStatus.BAD_REQUEST);
-			}
+            JSONObject payment = new JSONObject();
 
-			order.setPaymentStatus("Success");
-			order.setStatus("Confirmed");
+            payment.put("razorpay_order_id", dto.getRazorpayOrderId());
+            payment.put("razorpay_payment_id", dto.getRazorpaypaymentId());
+            payment.put("razorpay_signature", dto.getRazorpaySignature());
 
-			orderrepo.save(order);
+            logger.debug("Razorpay verification data prepared");
 
-			return ResponseEntity.ok("Payment Successful");
+            boolean verified =
+                    Utils.verifyPaymentSignature(payment, keySecret);
 
-		} catch (Exception e) {
-//			throw new PaymentException("PAyment verification failed 2", HttpStatus.INTERNAL_SERVER_ERROR);
-			
-			   e.printStackTrace();
+            if (!verified) {
 
-			    throw new PaymentException(
-			            e.getMessage(),
-			            HttpStatus.INTERNAL_SERVER_ERROR);
-			
-		}
+                logger.warn("Payment verification failed for order ID: {}",
+                        order.getId());
 
-	}
+                order.setPaymentStatus("Failed");
 
+                orderrepo.save(order);
+
+                throw new PaymentException(
+                        "PAyment verification failed 1",
+                        HttpStatus.BAD_REQUEST);
+            }
+
+            logger.info("Payment signature verified successfully for order ID: {}",
+                    order.getId());
+
+            order.setPaymentStatus("Success");
+            order.setStatus("Confirmed");
+
+            orderrepo.save(order);
+
+            logger.info("Payment successful. Order {} confirmed successfully",
+                    order.getId());
+
+            return ResponseEntity.ok("Payment Successful");
+
+        } catch (Exception e) {
+
+            logger.error("Error during payment verification for order ID: {}",
+                    order.getId(), e);
+
+            throw new PaymentException(
+                    e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
