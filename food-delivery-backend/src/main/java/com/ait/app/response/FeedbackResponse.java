@@ -60,6 +60,22 @@ public class FeedbackResponse {
 		public void setUpdatedAt(LocalDateTime updatedAt) {
 			this.updatedAt = updatedAt;
 		}
+		public FeedbackResponse(int id, int userId, int restaurantId, int orderId, int rating, String comment,
+				LocalDateTime createdAt, LocalDateTime updatedAt) {
+			super();
+			this.id = id;
+			this.userId = userId;
+			this.restaurantId = restaurantId;
+			this.orderId = orderId;
+			this.rating = rating;
+			this.comment = comment;
+			this.createdAt = createdAt;
+			this.updatedAt = updatedAt;
+		}
+		public FeedbackResponse() {
+			super();
+			// TODO Auto-generated constructor stub
+		}
 
 	    
 }

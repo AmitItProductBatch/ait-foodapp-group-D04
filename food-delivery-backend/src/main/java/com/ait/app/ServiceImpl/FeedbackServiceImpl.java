@@ -5,14 +5,20 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.ait.app.Service.FeedbackService;
 import com.ait.app.customExceptionHandler.FeedbackException;
+import com.ait.app.customExceptionHandler.RestaurantException;
 import com.ait.app.model.Feedback;
+import com.ait.app.model.Restaurant;
 import com.ait.app.repository.FeedbackRepository;
+import com.ait.app.repository.RestaurantRepo;
 import com.ait.app.requestBody.FeedbackDto;
 import com.ait.app.requestBody.FeedbackUpdateDto;
 import com.ait.app.response.FeedbackResponse;
@@ -22,6 +28,8 @@ public class FeedbackServiceImpl implements FeedbackService {
 
 	@Autowired
 	private FeedbackRepository feedbackRepository;
+	@Autowired
+	RestaurantRepo restaurantRepo;
 	
 	private static final org.slf4j.Logger logger =LoggerFactory.getLogger(FeedbackServiceImpl.class);
 
@@ -97,5 +105,24 @@ public class FeedbackServiceImpl implements FeedbackService {
 		}catch(Exception e) {
 			throw new RuntimeException("Exception Occured while updating Feedback "+e);
 		}
+	}
+
+	@Override
+	public Page<FeedbackResponse> getFeedbackByRestaurantId(int restaurantId, int page, int size) {
+		Optional<Restaurant> optionalRestaurant = restaurantRepo.findById(restaurantId);
+		if (optionalRestaurant.isEmpty()) {
+			logger.error("Restaurant not found for restaurantId: {}", restaurantId);
+			throw new RestaurantException("Restaurant not found for id: " + restaurantId, HttpStatus.NOT_FOUND);
+		}
+		logger.info("Restaurant found successfully for restaurantId: {}", restaurantId);
+		PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+		Page<Feedback> feedbackPage = feedbackRepository.findByRestaurantId(restaurantId, pageable);
+		logger.info("Found {} feedback entries for restaurantId: {}", feedbackPage.getTotalElements(), restaurantId);
+
+		Page<FeedbackResponse> responsePage = feedbackPage
+				.map(feedback -> new FeedbackResponse(feedback.getId(),feedback.getUserId(),feedback.getRestaurantId(),
+						feedback.getOrderId(), feedback.getRating(), feedback.getComment(),
+						feedback.getCreatedAt(),feedback.getUpdatedAt()));
+		return responsePage;
 	}
 }
